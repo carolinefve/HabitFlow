@@ -11,9 +11,31 @@ A mobile habit tracking and schedule management app built with React Native + Ex
 
 **Clone the Repository**
 
-`git clone <repository-url>`
-`cd HabitFlow`
+```
+git clone <repository-url>
+cd HabitFlow
+```
 
 **Install Dependencies**
 
-`npm install`
+```
+npm install
+```
+
+## 🤝 Git Workflow
+
+```
+# Create and switch to a new branch in one command
+git checkout -b feature/your-feature-name
+
+# Switch to an already existing branch
+git checkout branch-name
+
+# Push your branch to GitHub
+git push origin feature/your-feature-name
+
+# See all branches
+git branch
+
+# Then open a Pull Request on GitHub for review
+```
