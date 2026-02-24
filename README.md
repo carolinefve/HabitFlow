@@ -22,6 +22,12 @@ cd HabitFlow
 npm install
 ```
 
+**Start App**
+
+```
+npx expo start
+```
+
 ## 🤝 Git Workflow
 
 ```
