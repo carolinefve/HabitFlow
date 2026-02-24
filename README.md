@@ -26,13 +26,13 @@ npm install
 
 ```
 # Create and switch to a new branch in one command
-git checkout -b feature/your-feature-name
+git checkout -b name
 
 # Switch to an already existing branch
 git checkout branch-name
 
 # Push your branch to GitHub
-git push origin feature/your-feature-name
+git push origin name
 
 # See all branches
 git branch
