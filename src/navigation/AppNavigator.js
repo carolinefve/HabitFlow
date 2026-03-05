@@ -11,7 +11,7 @@ const Tab = createBottomTabNavigator();
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator screenOptions={{ headerTitle: "" }}>
         <Tab.Screen
           name="Agenda"
           component={AgendaScreen}
