@@ -5,10 +5,15 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Dimensions,
 } from "react-native";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { BarChart, LineChart } from "react-native-chart-kit";
+
+const { width: ScreenWidth } = Dimensions.get("window");
+const ChartWidth = ScreenWidth - 48;
 
 // Data
 const MotivationalQuotes = [
@@ -21,6 +26,27 @@ const MotivationalQuotes = [
     sub: "Take it easy this weekend you've earned it!",
   },
 ];
+
+const WeeklyData = {
+  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  datasets: [{ data: [4, 6, 5, 7, 3, 6, 5] }],
+};
+
+const MonthlyData = {
+  labels: ["W1", "W2", "W3", "W4"],
+  datasets: [{ data: [60, 70, 80, 90], color: () => "#7eb8f7" }],
+};
+
+const ChartConfiguration = {
+  backgroundGradientFrom: "#173454",
+  backgroundGradientTo: "#173454",
+  color: () => "#7eb8f7",
+  labelColor: () => "#ffffff",
+  strokeWidth: 2,
+  barPercentage: 0.6,
+  decimalPlaces: 0,
+  propsForDots: { r: "5", strokeWidth: "2", stroke: "#7EB8F7" },
+};
 
 // Components
 function StatPill({ label, value, accent }) {
@@ -62,7 +88,12 @@ function MotivationCard({ quote, sub }) {
   );
 }
 
+function SectionHeader({ title }) {
+  return <Text style={styles.sectionHeader}>{title}</Text>;
+}
+
 export default function ProgressScreen() {
+  const [activeChart, setActiveChart] = useState("weekly");
   return (
     <SafeAreaView
       style={styles.safeArea}
@@ -109,6 +140,61 @@ export default function ProgressScreen() {
           quote={MotivationalQuotes[0].quote}
           sub={MotivationalQuotes[0].sub}
         />
+
+        <SectionHeader title="Insights" />
+        <View style={styles.toggle}>
+          {["weekly", "monthly"].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[
+                styles.toggleBtn,
+                activeChart === tab && styles.toggleBtnActive,
+              ]}
+              onPress={() => setActiveChart(tab)}
+            >
+              <Text
+                style={[
+                  styles.toggleText,
+                  activeChart === tab && styles.toggleTextActive,
+                ]}
+              >
+                {tab === "weekly" ? "Weekly" : "Monthly"}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.chartCard}>
+          {activeChart === "weekly" ? (
+            <>
+              <Text style={styles.chartTitle}>Habits Completed / Day</Text>
+              <BarChart
+                data={WeeklyData}
+                width={ChartWidth - 24}
+                height={180}
+                chartConfig={ChartConfiguration}
+                style={styles.chart}
+                showValuesOnTopOfBars
+                fromZero
+                withInnerLines={false}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.chartTitle}>Monthly Completion Rate (%)</Text>
+              <LineChart
+                data={MonthlyData}
+                width={ChartWidth + 80}
+                height={180}
+                chartConfig={ChartConfiguration}
+                style={styles.chart}
+                bezier
+                withInnerLines={false}
+                withDots
+              />
+            </>
+          )}
+        </View>
         <MotivationCard
           quote={MotivationalQuotes[1].quote}
           sub={MotivationalQuotes[1].sub}
@@ -184,4 +270,45 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   motivationSub: { fontSize: 16, color: "#acd0f6", fontWeight: "500" },
+  sectionHeader: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#cfcdcd",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 10,
+    marginTop: 4,
+  },
+
+  toggle: {
+    flexDirection: "row",
+    backgroundColor: "#7EB8F7",
+    borderRadius: 9,
+    padding: 3,
+    marginBottom: 12,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 9,
+    alignItems: "center",
+  },
+  toggleBtnActive: { backgroundColor: "#173454" },
+  toggleText: { fontSize: 14, fontWeight: "600", color: "#000000" },
+  toggleTextActive: { color: "#ffffff" },
+
+  chartCard: {
+    backgroundColor: "#173454",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 24,
+    overflow: "hidden",
+  },
+  chartTitle: {
+    fontSize: 13,
+    color: "#ffffff",
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  chart: { marginLeft: -25 },
 });
