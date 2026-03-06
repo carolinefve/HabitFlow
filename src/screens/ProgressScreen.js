@@ -4,9 +4,23 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Animated,
 } from "react-native";
+import { useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+
+// Data
+const MotivationalQuotes = [
+  {
+    quote: "You never miss a Monday 💪",
+    sub: "Morning habits are your strongest.",
+  },
+  {
+    quote: "3 weeks of consistency 🌿",
+    sub: "Take it easy this weekend you've earned it!",
+  },
+];
 
 // Components
 function StatPill({ label, value, accent }) {
@@ -15,6 +29,36 @@ function StatPill({ label, value, accent }) {
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
+  );
+}
+
+function MotivationCard({ quote, sub }) {
+  const shimmer = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, {
+          toValue: 1,
+          duration: 2400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmer, {
+          toValue: 0,
+          duration: 2400,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
+  const opacity = shimmer.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.8, 1],
+  });
+  return (
+    <Animated.View style={[styles.motivationCard, { opacity }]}>
+      <Text style={styles.motivationQuote}>{quote}</Text>
+      <Text style={styles.motivationSub}>{sub}</Text>
+    </Animated.View>
   );
 }
 
@@ -60,6 +104,15 @@ export default function ProgressScreen() {
             accent="#A78BFA"
           />
         </View>
+
+        <MotivationCard
+          quote={MotivationalQuotes[0].quote}
+          sub={MotivationalQuotes[0].sub}
+        />
+        <MotivationCard
+          quote={MotivationalQuotes[1].quote}
+          sub={MotivationalQuotes[1].sub}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -117,4 +170,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "600",
   },
+  motivationCard: {
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#7EB8F7",
+  },
+  motivationQuote: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#ffffff",
+    marginBottom: 5,
+  },
+  motivationSub: { fontSize: 16, color: "#acd0f6", fontWeight: "500" },
 });
