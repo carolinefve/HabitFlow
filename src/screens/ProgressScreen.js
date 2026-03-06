@@ -46,7 +46,49 @@ const ChartConfiguration = {
   barPercentage: 0.6,
   decimalPlaces: 0,
   propsForDots: { r: "5", strokeWidth: "2", stroke: "#7EB8F7" },
+  propsForLabels: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
 };
+
+// Grid 8 weeks × 7 days 0=none, 1=partial, 2=done
+const EightWeeks = [
+  2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 0, 2, 1, 2, 2, 2,
+  0, 2, 2, 2, 1, 2, 0, 2, 2, 2, 0, 2, 2, 2, 2, 1, 1, 2, 2, 2, 0, 2, 2, 2, 2, 2,
+  1, 2, 2, 2,
+];
+
+const WeekLabels = (() => {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const today = new Date();
+  let lastMonth = -1;
+  return Array.from({ length: 8 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (7 - i) * 7);
+    const month = d.getMonth();
+    if (month !== lastMonth) {
+      lastMonth = month;
+      return months[month];
+    }
+    return "";
+  });
+})();
+
+const DayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
 // Components
 function StatPill({ label, value, accent }) {
@@ -90,6 +132,90 @@ function MotivationCard({ quote, sub }) {
 
 function SectionHeader({ title }) {
   return <Text style={styles.sectionHeader}>{title}</Text>;
+}
+
+function StreakGrid({ data }) {
+  const cols = 8;
+  const rows = 7;
+  const gap = 3;
+  const dayLabelWidth = 14;
+  const cellSize = 30;
+
+  const cellColor = (v) => {
+    if (v === 0) return "#001c3f";
+    if (v === 1) return "#4a7098";
+    return "#7EB8F7";
+  };
+
+  return (
+    <View style={{ alignItems: "center" }}>
+      <View
+        style={{
+          flexDirection: "row",
+          marginLeft: dayLabelWidth + gap,
+          marginBottom: 4,
+        }}
+      >
+        {WeekLabels.map((label, i) => (
+          <View
+            key={i}
+            style={{ width: cellSize, marginRight: i < cols - 1 ? gap : 0 }}
+          >
+            <Text style={styles.gridWeekLabel}>{label}</Text>
+          </View>
+        ))}
+      </View>
+
+      {Array.from({ length: rows }, (_, row) => (
+        <View
+          key={row}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: gap,
+          }}
+        >
+          <Text style={[styles.gridDayLabel, { width: dayLabelWidth }]}>
+            {DayLabels[row]}
+          </Text>
+          <View style={{ width: gap }} />
+          {Array.from({ length: cols }, (_, col) => {
+            const v = data[col * rows + row] ?? 0;
+            return (
+              <View
+                key={col}
+                style={[
+                  styles.streakCell,
+                  {
+                    backgroundColor: cellColor(v),
+                    width: cellSize,
+                    height: cellSize,
+                    marginRight: col < cols - 1 ? gap : 0,
+                  },
+                ]}
+              />
+            );
+          })}
+        </View>
+      ))}
+
+      <View style={styles.legendRow}>
+        {[
+          ["#000914", "None"],
+          ["#4a7098", "Partial"],
+          ["#7EB8F7", "Done"],
+        ].map(([color, label]) => (
+          <View
+            key={label}
+            style={styles.legendItem}
+          >
+            <View style={[styles.legendDot, { backgroundColor: color }]} />
+            <Text style={styles.legendLabel}>{label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
 }
 
 export default function ProgressScreen() {
@@ -199,6 +325,11 @@ export default function ProgressScreen() {
           quote={MotivationalQuotes[1].quote}
           sub={MotivationalQuotes[1].sub}
         />
+
+        <SectionHeader title="Habit Continuity — Last 8 Weeks" />
+        <View style={styles.chartCard}>
+          <StreakGrid data={EightWeeks} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -305,10 +436,26 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   chartTitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#ffffff",
     fontWeight: "600",
     marginBottom: 8,
   },
   chart: { marginLeft: -25 },
+  gridWeekLabel: { fontSize: 14, color: "#ffffff", fontWeight: "700" },
+  gridDayLabel: {
+    fontSize: 14,
+    color: "#ffffff",
+    fontWeight: "600",
+    textAlign: "right",
+  },
+  streakCell: { borderRadius: 3 },
+  legendRow: { flexDirection: "row", gap: 16, marginTop: 10 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  legendDot: { width: 12, height: 12, borderRadius: 3 },
+  legendLabel: {
+    fontSize: 14,
+    color: "#ffffff",
+    fontWeight: "500",
+  },
 });
