@@ -8,6 +8,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
+// Components
+function StatPill({ label, value, accent }) {
+  return (
+    <View style={[styles.statPill, { backgroundColor: accent }]}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 export default function ProgressScreen() {
   return (
     <SafeAreaView
@@ -31,6 +41,24 @@ export default function ProgressScreen() {
               color="#7EB8F7"
             />
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.statsRow}>
+          <StatPill
+            label="Current Streak"
+            value="21"
+            accent="#7EB8F7"
+          />
+          <StatPill
+            label="Best Streak"
+            value="34"
+            accent="#F9C784"
+          />
+          <StatPill
+            label="This Week"
+            value="88%"
+            accent="#A78BFA"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -64,4 +92,29 @@ const styles = StyleSheet.create({
     borderColor: "#7EB8F7",
   },
   avatarText: { color: "#7EB8F7", fontWeight: "800", fontSize: 18 },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    gap: 8,
+  },
+  statPill: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: "center",
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 2,
+    color: "#000000",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "rgb(0, 0, 0)",
+    textAlign: "center",
+    fontWeight: "600",
+  },
 });
