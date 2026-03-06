@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Pressable,
 } from "react-native";
 import { useRef, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +15,7 @@ import { BarChart, LineChart } from "react-native-chart-kit";
 
 const { width: ScreenWidth } = Dimensions.get("window");
 const ChartWidth = ScreenWidth - 48;
+const PanelWidth = ScreenWidth * 0.82;
 
 // Data
 const MotivationalQuotes = [
@@ -218,119 +220,211 @@ function StreakGrid({ data }) {
   );
 }
 
+function SettingsPanel({ visible, onClose }) {
+  const slideAnim = useRef(new Animated.Value(PanelWidth)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 24,
+          stiffness: 200,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: PanelWidth,
+          duration: 230,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropOpacity, {
+          toValue: 0,
+          duration: 230,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  return (
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents={visible ? "auto" : "none"}
+    >
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={onClose}
+      >
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            styles.backdrop,
+            { opacity: backdropOpacity },
+          ]}
+        />
+      </Pressable>
+
+      <Animated.View
+        style={[styles.panel, { transform: [{ translateX: slideAnim }] }]}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.panelContent}
+          bounces={false}
+        >
+          <View style={styles.panelHeader}>
+            <TouchableOpacity
+              style={styles.panelCloseBtn}
+              onPress={onClose}
+            >
+              <Text style={styles.panelCloseIcon}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.panelTitle}>Settings</Text>
+          </View>
+
+          <View style={styles.profileCard}>
+            <Text style={styles.profileName}>Name</Text>
+            <Text style={styles.profileSince}>Member since March 2025</Text>
+          </View>
+        </ScrollView>
+      </Animated.View>
+    </View>
+  );
+}
+
 export default function ProgressScreen() {
   const [activeChart, setActiveChart] = useState("weekly");
+  const [panelVisible, setPanelVisible] = useState(false);
+
   return (
     <SafeAreaView
       style={styles.safeArea}
       edges={["bottom", "left", "right"]}
     >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>Progress</Text>
-          <TouchableOpacity
-            style={styles.avatarCircle}
-            activeOpacity={0.75}
-          >
-            <Ionicons
-              name="person"
-              size={25}
-              color="#7EB8F7"
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.statsRow}>
-          <StatPill
-            label="Current Streak"
-            value="21"
-            accent="#7EB8F7"
-          />
-          <StatPill
-            label="Best Streak"
-            value="34"
-            accent="#F9C784"
-          />
-          <StatPill
-            label="This Week"
-            value="88%"
-            accent="#A78BFA"
-          />
-        </View>
-
-        <MotivationCard
-          quote={MotivationalQuotes[0].quote}
-          sub={MotivationalQuotes[0].sub}
-        />
-
-        <SectionHeader title="Insights" />
-        <View style={styles.toggle}>
-          {["weekly", "monthly"].map((tab) => (
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Progress</Text>
             <TouchableOpacity
-              key={tab}
-              style={[
-                styles.toggleBtn,
-                activeChart === tab && styles.toggleBtnActive,
-              ]}
-              onPress={() => setActiveChart(tab)}
+              style={styles.avatarCircle}
+              onPress={() => setPanelVisible(true)}
+              activeOpacity={0.75}
             >
-              <Text
-                style={[
-                  styles.toggleText,
-                  activeChart === tab && styles.toggleTextActive,
-                ]}
-              >
-                {tab === "weekly" ? "Weekly" : "Monthly"}
-              </Text>
+              <Ionicons
+                name="person"
+                size={25}
+                color="#7EB8F7"
+              />
             </TouchableOpacity>
-          ))}
-        </View>
+          </View>
 
-        <View style={styles.chartCard}>
-          {activeChart === "weekly" ? (
-            <>
-              <Text style={styles.chartTitle}>Habits Completed / Day</Text>
-              <BarChart
-                data={WeeklyData}
-                width={ChartWidth - 24}
-                height={180}
-                chartConfig={ChartConfiguration}
-                style={styles.chart}
-                showValuesOnTopOfBars
-                fromZero
-                withInnerLines={false}
-              />
-            </>
-          ) : (
-            <>
-              <Text style={styles.chartTitle}>Monthly Completion Rate (%)</Text>
-              <LineChart
-                data={MonthlyData}
-                width={ChartWidth + 80}
-                height={180}
-                chartConfig={ChartConfiguration}
-                style={styles.chart}
-                bezier
-                withInnerLines={false}
-                withDots
-              />
-            </>
-          )}
-        </View>
-        <MotivationCard
-          quote={MotivationalQuotes[1].quote}
-          sub={MotivationalQuotes[1].sub}
+          <View style={styles.statsRow}>
+            <StatPill
+              label="Current Streak"
+              value="21"
+              accent="#7EB8F7"
+            />
+            <StatPill
+              label="Best Streak"
+              value="34"
+              accent="#F9C784"
+            />
+            <StatPill
+              label="This Week"
+              value="88%"
+              accent="#A78BFA"
+            />
+          </View>
+
+          <MotivationCard
+            quote={MotivationalQuotes[0].quote}
+            sub={MotivationalQuotes[0].sub}
+          />
+
+          <SectionHeader title="Insights" />
+          <View style={styles.toggle}>
+            {["weekly", "monthly"].map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                style={[
+                  styles.toggleBtn,
+                  activeChart === tab && styles.toggleBtnActive,
+                ]}
+                onPress={() => setActiveChart(tab)}
+              >
+                <Text
+                  style={[
+                    styles.toggleText,
+                    activeChart === tab && styles.toggleTextActive,
+                  ]}
+                >
+                  {tab === "weekly" ? "Weekly" : "Monthly"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.chartCard}>
+            {activeChart === "weekly" ? (
+              <>
+                <Text style={styles.chartTitle}>Habits Completed / Day</Text>
+                <BarChart
+                  data={WeeklyData}
+                  width={ChartWidth - 24}
+                  height={180}
+                  chartConfig={ChartConfiguration}
+                  style={styles.chart}
+                  showValuesOnTopOfBars
+                  fromZero
+                  withInnerLines={false}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.chartTitle}>
+                  Monthly Completion Rate (%)
+                </Text>
+                <LineChart
+                  data={MonthlyData}
+                  width={ChartWidth + 80}
+                  height={180}
+                  chartConfig={ChartConfiguration}
+                  style={styles.chart}
+                  bezier
+                  withInnerLines={false}
+                  withDots
+                />
+              </>
+            )}
+          </View>
+          <MotivationCard
+            quote={MotivationalQuotes[1].quote}
+            sub={MotivationalQuotes[1].sub}
+          />
+
+          <SectionHeader title="Habit Continuity — Last 8 Weeks" />
+          <View style={styles.chartCard}>
+            <StreakGrid data={EightWeeks} />
+          </View>
+        </ScrollView>
+        <SettingsPanel
+          visible={panelVisible}
+          onClose={() => setPanelVisible(false)}
         />
-
-        <SectionHeader title="Habit Continuity — Last 8 Weeks" />
-        <View style={styles.chartCard}>
-          <StreakGrid data={EightWeeks} />
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -458,4 +552,57 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "500",
   },
+  backdrop: { backgroundColor: "rgba(0,0,0,0.72)" },
+  panel: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: PanelWidth,
+    backgroundColor: "#080808",
+    borderLeftWidth: 1,
+    borderLeftColor: "#111111",
+    shadowColor: "#000",
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  panelContent: { paddingHorizontal: 18, paddingBottom: 40, paddingTop: 16 },
+  panelHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 24,
+  },
+  panelCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#111111",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  panelCloseIcon: { color: "#7EB8F7", fontSize: 18, fontWeight: "600" },
+  panelTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#ffffff",
+  },
+  profileCard: {
+    backgroundColor: "#173454",
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: "#111111",
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: 3,
+  },
+  profileSince: { fontSize: 13, color: "#cfcdcd" },
 });
