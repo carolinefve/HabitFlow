@@ -7,6 +7,7 @@ import {
   Animated,
   Dimensions,
   Pressable,
+  Switch,
 } from "react-native";
 import { useRef, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -220,7 +221,27 @@ function StreakGrid({ data }) {
   );
 }
 
-function SettingsPanel({ visible, onClose }) {
+function SettingRow({ label, sub, value, onToggle, isLast }) {
+  return (
+    <>
+      <View style={styles.settingRow}>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text style={styles.settingLabel}>{label}</Text>
+          {sub ? <Text style={styles.settingSub}>{sub}</Text> : null}
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onToggle}
+          trackColor={{ false: "#242741", true: "#27517d" }}
+          thumbColor={value ? "#7EB8F7" : "#546591"}
+        />
+      </View>
+      {!isLast && <View style={styles.divider} />}
+    </>
+  );
+}
+
+function SettingsPanel({ visible, onClose, settings, onToggle }) {
   const slideAnim = useRef(new Animated.Value(PanelWidth)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -295,6 +316,38 @@ function SettingsPanel({ visible, onClose }) {
             <Text style={styles.profileName}>Name</Text>
             <Text style={styles.profileSince}>Member since March 2025</Text>
           </View>
+          <Text style={styles.panelSectionLabel}>NOTIFICATIONS</Text>
+          <View style={styles.settingsGroup}>
+            <SettingRow
+              label="Push Notifications"
+              sub="Reminders for your habits"
+              value={settings.notifications}
+              onToggle={() => onToggle("notifications")}
+            />
+            <SettingRow
+              label="Daily Reminder"
+              sub="Morning nudge at 8:00 AM"
+              value={settings.dailyReminder}
+              onToggle={() => onToggle("dailyReminder")}
+            />
+            <SettingRow
+              label="Weekly Report"
+              sub="Summary every Sunday"
+              value={settings.weeklyReport}
+              onToggle={() => onToggle("weeklyReport")}
+              isLast
+            />
+          </View>
+
+          <Text style={styles.panelSectionLabel}>PREFERENCES</Text>
+          <View style={styles.settingsGroup}>
+            <SettingRow
+              label="Dark Mode"
+              value={settings.darkMode}
+              onToggle={() => onToggle("darkMode")}
+              isLast
+            />
+          </View>
         </ScrollView>
       </Animated.View>
     </View>
@@ -304,6 +357,15 @@ function SettingsPanel({ visible, onClose }) {
 export default function ProgressScreen() {
   const [activeChart, setActiveChart] = useState("weekly");
   const [panelVisible, setPanelVisible] = useState(false);
+
+  const [settings, setSettings] = useState({
+    notifications: true,
+    dailyReminder: false,
+    weeklyReport: true,
+    darkMode: true,
+  });
+  const toggleSetting = (key) =>
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <SafeAreaView
@@ -423,6 +485,8 @@ export default function ProgressScreen() {
         <SettingsPanel
           visible={panelVisible}
           onClose={() => setPanelVisible(false)}
+          settings={settings}
+          onToggle={toggleSetting}
         />
       </View>
     </SafeAreaView>
@@ -594,7 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#111111",
   },
@@ -605,4 +669,22 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   profileSince: { fontSize: 13, color: "#cfcdcd" },
+  settingsGroup: {
+    backgroundColor: "#1d2025",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 13,
+  },
+  settingLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ffffff",
+    marginBottom: 3,
+  },
+  settingSub: { fontSize: 12, color: "#7EB8F7", fontWeight: "600" },
 });
