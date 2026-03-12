@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Modal,
   ScrollView,
@@ -9,6 +9,25 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  addDays,
+  applyTemplateToDate,
+  buildTaskPayload,
+  computeBlockHeight,
+  computeBlockTop,
+  createEmptyForm,
+  createTemplateFromTasks,
+  filterTasksByDate,
+  formatDateLabel,
+  normalizeTimeInput,
+  normalizeNumericTimeInput,
+  parseTimeInputParts,
+  parseTaskDate,
+  sortTimelineTasks,
+  upsertTask,
+  validateTaskForm,
+  deleteTaskById,
+} from "../services/agendaService";
 
 const SLOT_HEIGHT = 88;
 const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;
@@ -46,21 +65,21 @@ const timelineHours = [
 const initialTasks = [
   {
     id: "ad-1",
-    title: "Project Sync",
+    title: "Study",
     dateLabel: "2026-02-23",
     allDay: true,
-    notes: "Design review - Team A",
-    color: "#3A7BFF",
+    notes: "Read notes",
+    color: "#E53935",
     startTime: "",
     endTime: "",
   },
   {
     id: "ad-2",
-    title: "Workout",
+    title: "Clean Room",
     dateLabel: "2026-02-23",
     allDay: true,
-    notes: "Upper body - 45 min",
-    color: "#43A047",
+    notes: "Tidy up desk",
+    color: "#8E24AA",
     startTime: "",
     endTime: "",
   },
@@ -69,63 +88,22 @@ const initialTasks = [
     title: "Client Call",
     dateLabel: "2026-02-23",
     allDay: false,
-    startTime: "12:30 PM",
-    endTime: "1:20 PM",
+    startTime: "1:30 AM",
+    endTime: "2:20 AM",
     notes: "Quarterly planning",
-    color: "#3A7BFF",
+    color: "#43A047",
   },
   {
     id: "t-2",
     title: "Lunch",
     dateLabel: "2026-02-23",
     allDay: false,
-    startTime: "1:45 PM",
-    endTime: "2:30 PM",
+    startTime: "3:15 AM",
+    endTime: "4:00 AM",
     notes: "Cafe downstairs",
-    color: "#8D6E63",
-  },
-  {
-    id: "t-3",
-    title: "Focus Work",
-    dateLabel: "2026-02-23",
-    allDay: false,
-    startTime: "3:00 PM",
-    endTime: "4:30 PM",
-    notes: "Prototype polishing",
-    color: "#E53935",
-  },
-  {
-    id: "t-4",
-    title: "Team Standup",
-    dateLabel: "2026-02-23",
-    allDay: false,
-    startTime: "5:30 PM",
-    endTime: "6:15 PM",
-    notes: "Sprint check-in",
-    color: "#8E24AA",
-  },
-  {
-    id: "t-5",
-    title: "Evening Walk",
-    dateLabel: "2026-02-23",
-    allDay: false,
-    startTime: "8:00 PM",
-    endTime: "9:00 PM",
-    notes: "Riverside",
-    color: "#43A047",
+    color: "#3A7BFF",
   },
 ];
-
-const createEmptyForm = () => ({
-  id: "",
-  title: "",
-  date: new Date(2026, 1, 23),
-  startTime: "",
-  endTime: "",
-  notes: "",
-  color: colorPalette[0],
-  allDay: false,
-});
 
 function formatDate(date) {
   return date.toLocaleDateString("en-US", {
@@ -135,37 +113,148 @@ function formatDate(date) {
   });
 }
 
-function parseTaskDate(value) {
-  if (!value) return new Date(BASE_DAY_DATE);
-  const parsed = new Date(value);
-  if (!Number.isNaN(parsed.getTime())) return parsed;
-  return new Date(BASE_DAY_DATE);
+
+function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
+  const [hourValue, setHourValue] = useState("");
+  const [minuteValue, setMinuteValue] = useState("");
+  const [periodValue, setPeriodValue] = useState("AM");
+
+  React.useEffect(() => {
+    if (visible) {
+      const nextParts = parseTimeInputParts(value);
+      setHourValue(nextParts.hour);
+      setMinuteValue(nextParts.minute);
+      setPeriodValue(nextParts.period);
+    }
+  }, [value, visible]);
+
+  const normalized = normalizeNumericTimeInput(hourValue, minuteValue, periodValue);
+  const hasValue = hourValue.trim().length > 0 || minuteValue.trim().length > 0;
+  const error = hasValue && !normalized ? "Enter hour 1-12 and minute 00-59." : "";
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={[styles.dialog, styles.templateDialog]}>
+          <Text style={styles.dialogTitle}>{fieldLabel}</Text>
+          <Text style={styles.dialogHint}>Enter hour and minute, then choose AM or PM.</Text>
+
+          <View style={styles.timeInputRow}>
+            <TextInput
+              value={hourValue}
+              onChangeText={(text) => setHourValue(text.replace(/\D/g, "").slice(0, 2))}
+              placeholder="2"
+              placeholderTextColor="#7E7E88"
+              keyboardType="number-pad"
+              style={[styles.input, styles.timeSplitInput, styles.timeInputField]}
+            />
+            <Text style={styles.timeColon}>:</Text>
+            <TextInput
+              value={minuteValue}
+              onChangeText={(text) => setMinuteValue(text.replace(/\D/g, "").slice(0, 2))}
+              placeholder="30"
+              placeholderTextColor="#7E7E88"
+              keyboardType="number-pad"
+              style={[styles.input, styles.timeSplitInput, styles.timeInputField]}
+            />
+          </View>
+
+          <View style={styles.periodRow}>
+            {["AM", "PM"].map((period) => (
+              <TouchableOpacity
+                key={period}
+                style={[
+                  styles.periodButton,
+                  periodValue === period ? styles.periodButtonActive : null,
+                ]}
+                activeOpacity={0.82}
+                onPress={() => setPeriodValue(period)}
+              >
+                <Text
+                  style={[
+                    styles.periodButtonText,
+                    periodValue === period ? styles.periodButtonTextActive : null,
+                  ]}
+                >
+                  {period}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <View style={styles.inlineActions}>
+            <TouchableOpacity
+              style={[styles.smallActionButton, styles.cancelButton]}
+              onPress={onClose}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.smallActionButton,
+                styles.saveButton,
+                hasValue && !normalized ? styles.disabledButton : null,
+              ]}
+              onPress={() => onSave(normalized)}
+              disabled={hasValue && !normalized}
+            >
+              <Text style={styles.saveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
-function timeToMinutes(value) {
-  if (!value) return null;
-  const [clock, period] = value.split(" ");
-  const [rawHour, rawMinute] = clock.split(":").map(Number);
-  let hour = rawHour;
-  if (period === "PM" && hour !== 12) hour += 12;
-  if (period === "AM" && hour === 12) hour = 0;
-  return hour * 60 + rawMinute;
-}
+function TemplatePickerModal({ visible, templates, onClose, onSelect }) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={[styles.dialog, styles.templateDialog]}>
+          <Text style={styles.dialogTitle}>Use Template</Text>
+          <Text style={styles.dialogHint}>Import all tasks into the selected day.</Text>
 
-function computeBlockHeight(task) {
-  const start = timeToMinutes(task.startTime);
-  const end = timeToMinutes(task.endTime);
-  if (start === null) return 52;
-  const duration = end !== null && end > start ? end - start : 60;
-  return Math.max(26, Math.round(duration * PIXELS_PER_MINUTE));
-}
+          <ScrollView
+            style={styles.templateList}
+            contentContainerStyle={styles.templateListContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {templates.length ? (
+              templates.map((template) => (
+                <TouchableOpacity
+                  key={template.id}
+                  style={styles.templateListItem}
+                  activeOpacity={0.82}
+                  onPress={() => onSelect(template)}
+                >
+                  <Text style={styles.templateListTitle}>{template.name}</Text>
+                  <Text style={styles.templateListMeta}>
+                    {template.tasks.length} task{template.tasks.length === 1 ? "" : "s"}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyStateCard}>
+                <Text style={styles.emptyStateTitle}>No templates saved</Text>
+                <Text style={styles.emptyStateSubtitle}>Save a day first, then reuse it here.</Text>
+              </View>
+            )}
+          </ScrollView>
 
-function computeBlockTop(task, fallbackIndex) {
-  const baseline = timeToMinutes("12:00 AM");
-  const start = timeToMinutes(task.startTime);
-  if (start === null) return 14 + fallbackIndex * 92;
-  const minuteOffset = Math.max(0, start - baseline);
-  return Math.round(minuteOffset * PIXELS_PER_MINUTE);
+          <TouchableOpacity
+            style={[styles.actionButton, styles.cancelButton]}
+            onPress={onClose}
+          >
+            <Text style={styles.cancelText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 function AgendaTaskModal({
@@ -176,179 +265,218 @@ function AgendaTaskModal({
   onClose,
   onSave,
   onDelete,
+  onUseTemplate,
 }) {
+  const [timeField, setTimeField] = useState("");
   const modalTitle = mode === "edit" ? "Edit Task" : "Create Task";
-  const displayDate = mode === "create" ? new Date() : form.date;
-
-  const noopPress = () => {};
+  const validation = validateTaskForm(form);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalBackdrop}>
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{modalTitle}</Text>
+    <>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{modalTitle}</Text>
 
-          <ScrollView
-            style={styles.formScroll}
-            contentContainerStyle={styles.formContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {mode === "create" ? (
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Template</Text>
-                <TouchableOpacity style={styles.templateButton} activeOpacity={0.8} onPress={noopPress}>
-                  <Text style={styles.templateButtonText}>Use Template</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Title</Text>
-              <TextInput
-                value={form.title}
-                onChangeText={(text) => setForm((prev) => ({ ...prev, title: text }))}
-                placeholder="Task title"
-                placeholderTextColor="#7E7E88"
-                style={styles.input}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Date</Text>
-              <View style={styles.dateRow}>
-                <View style={styles.dateBadge}>
-                  <Text style={styles.dateBadgeText}>{formatDate(displayDate)}</Text>
+            <ScrollView
+              style={styles.formScroll}
+              contentContainerStyle={styles.formContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {mode === "create" ? (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Template</Text>
+                  <TouchableOpacity
+                    style={styles.templateButton}
+                    activeOpacity={0.8}
+                    onPress={onUseTemplate}
+                  >
+                    <Text style={styles.templateButtonText}>Use Template</Text>
+                  </TouchableOpacity>
                 </View>
-              </View>
-            </View>
+              ) : null}
 
-            <View style={styles.fieldGroup}>
-              <View style={styles.switchRow}>
-                <Text style={styles.fieldLabel}>All Day</Text>
-                <Switch
-                  value={form.allDay}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      allDay: value,
-                      startTime: value ? "" : prev.startTime,
-                      endTime: value ? "" : prev.endTime,
-                    }))
-                  }
-                  trackColor={{ false: "#2C2C34", true: "#3A7BFF" }}
-                  thumbColor="#FFFFFF"
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Title</Text>
+                <TextInput
+                  value={form.title}
+                  onChangeText={(text) => setForm((prev) => ({ ...prev, title: text }))}
+                  placeholder="Task title"
+                  placeholderTextColor="#7E7E88"
+                  style={styles.input}
                 />
               </View>
-              {form.allDay ? <Text style={styles.allDayHint}>All Day</Text> : null}
-            </View>
 
-            {!form.allDay ? (
-              <>
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Start Time</Text>
-                  <View style={styles.timeFieldRow}>
-                    <TouchableOpacity
-                      style={form.startTime ? styles.timeTag : styles.addTimeButton}
-                      onPress={noopPress}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={form.startTime ? styles.timeTagText : styles.addTimeText}>
-                        {form.startTime || "Add time"}
-                      </Text>
-                    </TouchableOpacity>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Date</Text>
+                <View style={styles.dateRow}>
+                  <View style={styles.dateBadge}>
+                    <Text style={styles.dateBadgeText}>{formatDate(form.date)}</Text>
                   </View>
                 </View>
-
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>End Time</Text>
-                  <View style={styles.timeFieldRow}>
-                    <TouchableOpacity
-                      style={form.endTime ? styles.timeTag : styles.addTimeButton}
-                      onPress={noopPress}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={form.endTime ? styles.timeTagText : styles.addTimeText}>
-                        {form.endTime || "Add time"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </>
-            ) : null}
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Notes</Text>
-              <TextInput
-                value={form.notes}
-                onChangeText={(text) => setForm((prev) => ({ ...prev, notes: text }))}
-                placeholder="Optional notes"
-                placeholderTextColor="#7E7E88"
-                style={[styles.input, styles.notesInput]}
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Color</Text>
-              <View style={styles.colorRow}>
-                {colorPalette.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorSwatch,
-                      { backgroundColor: color },
-                      form.color === color ? styles.colorSwatchActive : null,
-                    ]}
-                    onPress={() => setForm((prev) => ({ ...prev, color }))}
-                  />
-                ))}
               </View>
-            </View>
-          </ScrollView>
 
-          <View style={styles.footerButtons}>
-            <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={onClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+              <View style={styles.fieldGroup}>
+                <View style={styles.switchRow}>
+                  <Text style={styles.fieldLabel}>All Day</Text>
+                  <Switch
+                    value={form.allDay}
+                    onValueChange={(value) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        allDay: value,
+                        startTime: value ? "" : prev.startTime,
+                        endTime: value ? "" : prev.endTime,
+                      }))
+                    }
+                    trackColor={{ false: "#2C2C34", true: "#3A7BFF" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+                {form.allDay ? <Text style={styles.allDayHint}>All Day</Text> : null}
+              </View>
 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.saveButton]}
-              onPress={onSave}
-            >
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
+              {!form.allDay ? (
+                <>
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>Start Time</Text>
+                    <View style={styles.timeFieldRow}>
+                      <TouchableOpacity
+                        style={form.startTime ? styles.timeTag : styles.addTimeButton}
+                        onPress={() => setTimeField("startTime")}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={form.startTime ? styles.timeTagText : styles.addTimeText}>
+                          {form.startTime || "Add time"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
 
-            {mode === "edit" ? (
-              <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDelete}>
-                <Text style={styles.deleteText}>Delete</Text>
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>End Time</Text>
+                    <View style={styles.timeFieldRow}>
+                      <TouchableOpacity
+                        style={form.endTime ? styles.timeTag : styles.addTimeButton}
+                        onPress={() => setTimeField("endTime")}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={form.endTime ? styles.timeTagText : styles.addTimeText}>
+                          {form.endTime || "Add time"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </>
+              ) : null}
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Notes</Text>
+                <TextInput
+                  value={form.notes}
+                  onChangeText={(text) => setForm((prev) => ({ ...prev, notes: text }))}
+                  placeholder="Optional notes"
+                  placeholderTextColor="#7E7E88"
+                  style={[styles.input, styles.notesInput]}
+                  multiline
+                  textAlignVertical="top"
+                />
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Color</Text>
+                <View style={styles.colorRow}>
+                  {colorPalette.map((color) => (
+                    <TouchableOpacity
+                      key={color}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: color },
+                        form.color === color ? styles.colorSwatchActive : null,
+                      ]}
+                      onPress={() => setForm((prev) => ({ ...prev, color }))}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {validation.error ? <Text style={styles.errorText}>{validation.error}</Text> : null}
+            </ScrollView>
+
+            <View style={styles.footerButtons}>
+              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={onClose}>
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-            ) : null}
+
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.saveButton,
+                  !validation.isValid ? styles.disabledButton : null,
+                ]}
+                onPress={onSave}
+                disabled={!validation.isValid}
+              >
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+
+              {mode === "edit" ? (
+                <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDelete}>
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+      <TimeInputModal
+        visible={Boolean(timeField)}
+        fieldLabel={timeField === "endTime" ? "End Time" : "Start Time"}
+        value={timeField ? form[timeField] : ""}
+        onClose={() => setTimeField("")}
+        onSave={(value) => {
+          if (!timeField) return;
+          setForm((prev) => ({ ...prev, [timeField]: value }));
+          setTimeField("");
+        }}
+      />
+    </>
   );
 }
 
 export default function AgendaScreen() {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [templates, setTemplates] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [templatePickerVisible, setTemplatePickerVisible] = useState(false);
   const [mode, setMode] = useState("create");
-  const [form, setForm] = useState(createEmptyForm());
+  const [form, setForm] = useState(createEmptyForm(formatDateLabel(BASE_DAY_DATE)));
   const [selectedDate, setSelectedDate] = useState(BASE_DAY_DATE);
 
-  const allDayTasks = initialTasks.filter((task) => task.allDay);
-  const timelineTasks = initialTasks.filter((task) => !task.allDay);
+  const selectedDateLabel = formatDateLabel(selectedDate);
+  const tasksForSelectedDate = useMemo(
+    () => filterTasksByDate(tasks, selectedDateLabel),
+    [selectedDateLabel, tasks]
+  );
+  const allDayTasks = useMemo(
+    () => tasksForSelectedDate.filter((task) => task.allDay),
+    [tasksForSelectedDate]
+  );
+  const timelineTasks = useMemo(
+    () => sortTimelineTasks(tasksForSelectedDate),
+    [tasksForSelectedDate]
+  );
 
   const openCreateModal = () => {
     setMode("create");
-    setForm((prev) => ({ ...createEmptyForm(), date: new Date(), color: prev.color || colorPalette[0] }));
+    setForm((prev) => ({
+      ...createEmptyForm(selectedDateLabel),
+      color: prev.color || colorPalette[0],
+    }));
     setModalVisible(true);
   };
-
-  const onPrevDatePress = () => {};
-  const onNextDatePress = () => {};
 
   const openEditModal = (task) => {
     setMode("edit");
@@ -367,8 +495,35 @@ export default function AgendaScreen() {
 
   const closeModal = () => {
     setModalVisible(false);
+    setTemplatePickerVisible(false);
   };
-  const noopModalAction = () => {};
+
+  const handleSaveTask = () => {
+    const validation = validateTaskForm(form);
+    if (!validation.isValid) return;
+
+    const taskPayload = buildTaskPayload(form);
+    setTasks((prev) => upsertTask(prev, taskPayload, mode));
+
+    closeModal();
+  };
+
+  const handleDeleteTask = () => {
+    if (!form.id) return;
+    setTasks((prev) => deleteTaskById(prev, form.id));
+    closeModal();
+  };
+
+  const handleSaveTemplate = () => {
+    if (!tasksForSelectedDate.length) return;
+    setTemplates((prev) => [...prev, createTemplateFromTasks(tasksForSelectedDate, selectedDateLabel, prev.length)]);
+  };
+
+  const handleUseTemplate = (template) => {
+    setTasks((prev) => [...prev, ...applyTemplateToDate(template, selectedDateLabel)]);
+    setTemplatePickerVisible(false);
+    setModalVisible(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -383,7 +538,7 @@ export default function AgendaScreen() {
             <View style={styles.headerActions}>
               <View style={styles.headerDateRow}>
                 <TouchableOpacity
-                  onPress={onPrevDatePress}
+                  onPress={() => setSelectedDate((prev) => addDays(prev, -1))}
                   style={styles.headerArrowButton}
                   activeOpacity={0.7}
                 >
@@ -395,14 +550,23 @@ export default function AgendaScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={onNextDatePress}
+                  onPress={() => setSelectedDate((prev) => addDays(prev, 1))}
                   style={styles.headerArrowButton}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.headerArrowText}>{">"}</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.saveTemplateButton} activeOpacity={0.82} onPress={() => {}}>
+
+              <TouchableOpacity
+                style={[
+                  styles.saveTemplateButton,
+                  !tasksForSelectedDate.length ? styles.disabledButton : null,
+                ]}
+                activeOpacity={0.82}
+                onPress={handleSaveTemplate}
+                disabled={!tasksForSelectedDate.length}
+              >
                 <Text style={styles.saveTemplateText}>Save Template</Text>
               </TouchableOpacity>
             </View>
@@ -410,17 +574,24 @@ export default function AgendaScreen() {
         </View>
 
         <View style={styles.allDaySection}>
-          {allDayTasks.map((task) => (
-            <TouchableOpacity
-              key={task.id}
-              activeOpacity={0.9}
-              onPress={() => openEditModal(task)}
-              style={[styles.allDayCard, { backgroundColor: task.color }]}
-            >
-              <Text style={styles.allDayTitle}>{task.title}</Text>
-              <Text style={styles.allDaySubtitle}>{task.notes || task.dateLabel}</Text>
-            </TouchableOpacity>
-          ))}
+          {allDayTasks.length ? (
+            allDayTasks.map((task) => (
+              <TouchableOpacity
+                key={task.id}
+                activeOpacity={0.9}
+                onPress={() => openEditModal(task)}
+                style={[styles.allDayCard, { backgroundColor: task.color }]}
+              >
+                <Text style={styles.allDayTitle}>{task.title}</Text>
+                <Text style={styles.allDaySubtitle}>{task.notes || task.dateLabel}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyStateCard}>
+              <Text style={styles.emptyStateTitle}>No all day tasks</Text>
+              <Text style={styles.emptyStateSubtitle}>{selectedDateLabel}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.timelineSection}>
@@ -438,27 +609,34 @@ export default function AgendaScreen() {
             ))}
 
             <View style={styles.blocksLayer}>
-              {timelineTasks.map((task, index) => (
-                <TouchableOpacity
-                  key={task.id}
-                  activeOpacity={0.92}
-                  onPress={() => openEditModal(task)}
-                  style={[
-                    styles.eventBlock,
-                    {
-                      backgroundColor: task.color,
-                      top: computeBlockTop(task, index),
-                      height: computeBlockHeight(task),
-                    },
-                  ]}
-                >
-                  <Text style={styles.eventTitle}>{task.title}</Text>
-                  <Text style={styles.eventTime}>
-                    {task.startTime ? task.startTime : "All Day"}
-                    {task.endTime ? ` - ${task.endTime}` : ""}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {timelineTasks.length ? (
+                timelineTasks.map((task, index) => (
+                  <TouchableOpacity
+                    key={task.id}
+                    activeOpacity={0.92}
+                    onPress={() => openEditModal(task)}
+                    style={[
+                      styles.eventBlock,
+                      {
+                        backgroundColor: task.color,
+                        top: computeBlockTop(task, index),
+                        height: computeBlockHeight(task),
+                      },
+                    ]}
+                  >
+                    <Text style={styles.eventTitle}>{task.title}</Text>
+                    <Text style={styles.eventTime}>
+                      {task.startTime ? task.startTime : "All Day"}
+                      {task.endTime ? ` - ${task.endTime}` : ""}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.timelineEmptyState}>
+                  <Text style={styles.emptyStateTitle}>No scheduled tasks</Text>
+                  <Text style={styles.emptyStateSubtitle}>Tap + to add one</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -474,8 +652,16 @@ export default function AgendaScreen() {
         form={form}
         setForm={setForm}
         onClose={closeModal}
-        onSave={noopModalAction}
-        onDelete={noopModalAction}
+        onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
+        onUseTemplate={() => setTemplatePickerVisible(true)}
+      />
+
+      <TemplatePickerModal
+        visible={templatePickerVisible}
+        templates={templates}
+        onClose={() => setTemplatePickerVisible(false)}
+        onSelect={handleUseTemplate}
       />
     </View>
   );
@@ -708,6 +894,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#2A2A33",
   },
+  dialog: {
+    marginHorizontal: 16,
+    marginBottom: 32,
+    borderRadius: 24,
+    backgroundColor: "#141418",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: "#2A2A33",
+  },
+  templateDialog: {
+    maxHeight: "72%",
+    minHeight: 420,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+  dialogTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  dialogHint: {
+    marginTop: 6,
+    marginBottom: 14,
+    color: "#9CA0AD",
+    fontSize: 13,
+  },
   sheetHandle: {
     alignSelf: "center",
     width: 46,
@@ -752,7 +965,52 @@ const styles = StyleSheet.create({
   notesInput: {
     minHeight: 92,
   },
-
+  timeInputField: {
+    marginBottom: 8,
+  },
+  timeInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  timeSplitInput: {
+    flex: 1,
+    textAlign: "center",
+  },
+  timeColon: {
+    color: "#D8D8E0",
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  periodRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 12,
+  },
+  periodButton: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2D2D36",
+    backgroundColor: "#1D1D24",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  periodButtonActive: {
+    borderColor: "#3A7BFF",
+    backgroundColor: "rgba(58,123,255,0.16)",
+  },
+  periodButtonText: {
+    color: "#A8A8B3",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  periodButtonTextActive: {
+    color: "#DCE8FF",
+  },
   dateRow: {
     alignItems: "flex-start",
   },
@@ -852,10 +1110,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
+  inlineActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
   actionButton: {
     flex: 1,
     borderRadius: 12,
     minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  smallActionButton: {
+    flex: 1,
+    borderRadius: 12,
+    minHeight: 42,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -867,6 +1137,9 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: "#C62828",
+  },
+  disabledButton: {
+    opacity: 0.45,
   },
   cancelText: {
     color: "#D3D3DD",
@@ -882,5 +1155,68 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
+  },
+  errorText: {
+    color: "#FF8A80",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  templateList: {
+    minHeight: 220,
+    maxHeight: 360,
+    marginBottom: 14,
+  },
+  templateListContent: {
+    paddingBottom: 4,
+    gap: 10,
+  },
+  templateListItem: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#2D2D36",
+    backgroundColor: "#1D1D24",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    minHeight: 64,
+  },
+  templateListTitle: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  templateListMeta: {
+    marginTop: 4,
+    color: "#A8A8B3",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  emptyStateCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#2D2D36",
+    backgroundColor: "#17171D",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  emptyStateTitle: {
+    color: "#F1F1F4",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  emptyStateSubtitle: {
+    marginTop: 4,
+    color: "#9696A2",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  timelineEmptyState: {
+    marginTop: 18,
+    marginRight: 4,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#2D2D36",
+    backgroundColor: "#17171D",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
 });
