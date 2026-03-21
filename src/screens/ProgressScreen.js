@@ -14,104 +14,28 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { BarChart, LineChart } from "react-native-chart-kit";
 
+import {
+  MotivationalQuotes,
+  WeeklyData,
+  MonthlyData,
+  ChartConfiguration,
+  EightWeeks,
+  DayLabels,
+  FrequencyOptions,
+  DefaultSettings,
+  generateWeekLabels,
+} from "../services/progressService";
+
+import styles from "../styles/progressStyles";
+
 const { width: ScreenWidth } = Dimensions.get("window");
 const ChartWidth = ScreenWidth - 48;
 const PanelWidth = ScreenWidth * 0.82;
 
-// Data
-const MotivationalQuotes = [
-  {
-    quote: "You never miss a Monday 💪",
-    sub: "Morning habits are your strongest.",
-  },
-  {
-    quote: "3 weeks of consistency 🌿",
-    sub: "Take it easy this weekend you've earned it!",
-  },
-];
-
-const WeeklyData = {
-  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  datasets: [{ data: [4, 6, 5, 7, 3, 6, 5] }],
-};
-
-const MonthlyData = {
-  labels: ["W1", "W2", "W3", "W4"],
-  datasets: [{ data: [60, 70, 80, 90], color: () => "#7eb8f7" }],
-};
-
-const ChartConfiguration = {
-  backgroundGradientFrom: "#173454",
-  backgroundGradientTo: "#173454",
-  color: () => "#7eb8f7",
-  labelColor: () => "#ffffff",
-  strokeWidth: 2,
-  barPercentage: 0.6,
-  decimalPlaces: 0,
-  propsForDots: { r: "5", strokeWidth: "2", stroke: "#7EB8F7" },
-  propsForLabels: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-};
-
-// Grid 8 weeks × 7 days 0=none, 1=partial, 2=done
-const EightWeeks = [
-  2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 0, 2, 1, 2, 2, 2,
-  0, 2, 2, 2, 1, 2, 0, 2, 2, 2, 0, 2, 2, 2, 2, 1, 1, 2, 2, 2, 0, 2, 2, 2, 2, 2,
-  1, 2, 2, 2,
-];
-
-const WeekLabels = (() => {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const today = new Date();
-  let lastMonth = -1;
-  return Array.from({ length: 8 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - (7 - i) * 7);
-    const month = d.getMonth();
-    if (month !== lastMonth) {
-      lastMonth = month;
-      return months[month];
-    }
-    return "";
-  });
-})();
-
-const DayLabels = ["M", "T", "W", "T", "F", "S", "S"];
-
-const FrequencyOptions = [
-  {
-    key: "normal",
-    label: "Normal",
-    desc: "Remind me every time a habit is due",
-  },
-  {
-    key: "gentle",
-    label: "Gentle",
-    desc: "Only remind me if I haven't completed it by midday",
-  },
-  {
-    key: "minimal",
-    label: "Minimal",
-    desc: "One reminder per day, no matter how many habits are due",
-  },
-];
+const WeekLabels = generateWeekLabels();
 
 // Components
+
 function StatPill({ label, value, accent }) {
   return (
     <View style={[styles.statPill, { backgroundColor: accent }]}>
@@ -395,7 +319,10 @@ function SettingsPanel({
       </Pressable>
 
       <Animated.View
-        style={[styles.panel, { transform: [{ translateX: slideAnim }] }]}
+        style={[
+          styles.panel,
+          { width: PanelWidth, transform: [{ translateX: slideAnim }] },
+        ]}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -416,6 +343,7 @@ function SettingsPanel({
             <Text style={styles.profileName}>Name</Text>
             <Text style={styles.profileSince}>Member since March 2025</Text>
           </View>
+
           <Text style={styles.panelSectionLabel}>NOTIFICATIONS</Text>
           <View style={styles.settingsGroup}>
             <SettingRow
@@ -458,17 +386,13 @@ function SettingsPanel({
   );
 }
 
+// Screen
+
 export default function ProgressScreen() {
   const [activeChart, setActiveChart] = useState("weekly");
   const [panelVisible, setPanelVisible] = useState(false);
+  const [settings, setSettings] = useState(DefaultSettings);
 
-  const [settings, setSettings] = useState({
-    notifications: true,
-    dailyReminder: false,
-    weeklyReport: true,
-    darkMode: true,
-    frequency: "normal",
-  });
   const toggleSetting = (key) =>
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -577,6 +501,7 @@ export default function ProgressScreen() {
               </>
             )}
           </View>
+
           <MotivationCard
             quote={MotivationalQuotes[1].quote}
             sub={MotivationalQuotes[1].sub}
@@ -587,6 +512,7 @@ export default function ProgressScreen() {
             <StreakGrid data={EightWeeks} />
           </View>
         </ScrollView>
+
         <SettingsPanel
           visible={panelVisible}
           onClose={() => setPanelVisible(false)}
@@ -600,240 +526,3 @@ export default function ProgressScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#000000" },
-  container: { flex: 1, backgroundColor: "#000000" },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 35,
-    fontWeight: "800",
-    color: "#ffffff",
-  },
-  avatarCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 25,
-    backgroundColor: "#0D2137",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#7EB8F7",
-  },
-  avatarText: { color: "#7EB8F7", fontWeight: "800", fontSize: 18 },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 20,
-    gap: 8,
-  },
-  statPill: {
-    flex: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 2,
-    color: "#000000",
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "rgb(0, 0, 0)",
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  motivationCard: {
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: "#7EB8F7",
-  },
-  motivationQuote: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: "#ffffff",
-    marginBottom: 5,
-  },
-  motivationSub: { fontSize: 16, color: "#acd0f6", fontWeight: "500" },
-  sectionHeader: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#cfcdcd",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-    marginBottom: 10,
-    marginTop: 4,
-  },
-
-  toggle: {
-    flexDirection: "row",
-    backgroundColor: "#7EB8F7",
-    borderRadius: 9,
-    padding: 3,
-    marginBottom: 12,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 9,
-    alignItems: "center",
-  },
-  toggleBtnActive: { backgroundColor: "#173454" },
-  toggleText: { fontSize: 14, fontWeight: "600", color: "#000000" },
-  toggleTextActive: { color: "#ffffff" },
-
-  chartCard: {
-    backgroundColor: "#173454",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 24,
-    overflow: "hidden",
-  },
-  chartTitle: {
-    fontSize: 14,
-    color: "#ffffff",
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  chart: { marginLeft: -25 },
-  gridWeekLabel: { fontSize: 14, color: "#ffffff", fontWeight: "700" },
-  gridDayLabel: {
-    fontSize: 14,
-    color: "#ffffff",
-    fontWeight: "600",
-    textAlign: "right",
-  },
-  streakCell: { borderRadius: 3 },
-  legendRow: { flexDirection: "row", gap: 16, marginTop: 10 },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
-  legendDot: { width: 12, height: 12, borderRadius: 3 },
-  legendLabel: {
-    fontSize: 14,
-    color: "#ffffff",
-    fontWeight: "500",
-  },
-  backdrop: { backgroundColor: "rgba(0,0,0,0.72)" },
-  panel: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    right: 0,
-    width: PanelWidth,
-    backgroundColor: "#080808",
-    borderLeftWidth: 1,
-    borderLeftColor: "#111111",
-    shadowColor: "#000",
-    shadowOffset: { width: -4, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  panelContent: { paddingHorizontal: 18, paddingBottom: 40, paddingTop: 16 },
-  panelHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 24,
-  },
-  panelCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#111111",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  panelCloseIcon: { color: "#7EB8F7", fontSize: 18, fontWeight: "600" },
-  panelTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#ffffff",
-  },
-  profileCard: {
-    backgroundColor: "#173454",
-    borderRadius: 16,
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#111111",
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#ffffff",
-    marginBottom: 3,
-  },
-  profileSince: { fontSize: 13, color: "#cfcdcd" },
-  settingsGroup: {
-    backgroundColor: "#1d2025",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    marginBottom: 10,
-  },
-  settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 13,
-  },
-  settingLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#ffffff",
-    marginBottom: 3,
-  },
-  settingSub: { fontSize: 12, color: "#7EB8F7", fontWeight: "600" },
-  actionIcon: { color: "#7EB8F7", fontSize: 18 },
-  freqOption: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    gap: 12,
-  },
-  panelSectionLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#7EB8F7",
-    letterSpacing: 1.4,
-    marginBottom: 8,
-    marginTop: 10,
-  },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: "#1E1E1E" },
-  freqRadio: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: "#3A5A7A",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 1,
-  },
-  freqRadioActive: { borderColor: "#7EB8F7" },
-  freqRadioDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#7EB8F7",
-  },
-  freqLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#9ABEDE",
-    marginBottom: 2,
-  },
-  freqDesc: { fontSize: 12, color: "#5A7A9E", lineHeight: 17 },
-});
