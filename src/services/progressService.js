@@ -98,4 +98,5 @@ export const DefaultSettings = {
   weeklyReport: true,
   darkMode: true,
   frequency: "normal",
+  autoBackup: true,
 };

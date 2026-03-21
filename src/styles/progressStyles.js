@@ -170,7 +170,7 @@ export default StyleSheet.create({
   profileSince: { fontSize: 13, color: "#cfcdcd" },
 
   panelSectionLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     color: "#7EB8F7",
     letterSpacing: 1.4,

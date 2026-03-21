@@ -8,6 +8,7 @@ import {
   Dimensions,
   Pressable,
   Switch,
+  Platform,
 } from "react-native";
 import { useRef, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -329,6 +330,7 @@ function SettingsPanel({
           contentContainerStyle={styles.panelContent}
           bounces={false}
         >
+          {/* Header */}
           <View style={styles.panelHeader}>
             <TouchableOpacity
               style={styles.panelCloseBtn}
@@ -339,11 +341,13 @@ function SettingsPanel({
             <Text style={styles.panelTitle}>Settings</Text>
           </View>
 
+          {/* Profile */}
           <View style={styles.profileCard}>
             <Text style={styles.profileName}>Name</Text>
             <Text style={styles.profileSince}>Member since March 2025</Text>
           </View>
 
+          {/* Notifications */}
           <Text style={styles.panelSectionLabel}>NOTIFICATIONS</Text>
           <View style={styles.settingsGroup}>
             <SettingRow
@@ -367,6 +371,7 @@ function SettingsPanel({
             />
           </View>
 
+          {/* Preferences */}
           <Text style={styles.panelSectionLabel}>PREFERENCES</Text>
           <View style={styles.settingsGroup}>
             <FrequencyRow
@@ -379,6 +384,33 @@ function SettingsPanel({
               onToggle={() => onToggle("darkMode")}
               isLast
             />
+          </View>
+
+          {/* Data & Backup */}
+          <Text style={styles.panelSectionLabel}>DATA & BACKUP</Text>
+          <View style={styles.settingsGroup}>
+            <SettingRow
+              label="Automated Backup"
+              sub={
+                Platform.OS === "ios"
+                  ? "Synced with iCloud"
+                  : "Synced with Google One"
+              }
+              value={settings.autoBackup}
+              onToggle={() => onToggle("autoBackup")}
+            />
+            <TouchableOpacity
+              style={styles.settingRow}
+              activeOpacity={0.7}
+            >
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text style={styles.settingLabel}>Export Data</Text>
+                <Text style={styles.settingSub}>
+                  Save a JSON copy to your device
+                </Text>
+              </View>
+              <Text style={styles.actionIcon}>↓</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </Animated.View>
