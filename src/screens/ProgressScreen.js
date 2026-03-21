@@ -93,6 +93,24 @@ const WeekLabels = (() => {
 
 const DayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
+const FrequencyOptions = [
+  {
+    key: "normal",
+    label: "Normal",
+    desc: "Remind me every time a habit is due",
+  },
+  {
+    key: "gentle",
+    label: "Gentle",
+    desc: "Only remind me if I haven't completed it by midday",
+  },
+  {
+    key: "minimal",
+    label: "Minimal",
+    desc: "One reminder per day, no matter how many habits are due",
+  },
+];
+
 // Components
 function StatPill({ label, value, accent }) {
   return (
@@ -241,7 +259,89 @@ function SettingRow({ label, sub, value, onToggle, isLast }) {
   );
 }
 
-function SettingsPanel({ visible, onClose, settings, onToggle }) {
+function FrequencyRow({ value, onChange, isLast }) {
+  const [expanded, setExpanded] = useState(false);
+  const expandAnim = useRef(new Animated.Value(0)).current;
+
+  const toggleExpand = () => {
+    const next = !expanded;
+    setExpanded(next);
+    Animated.spring(expandAnim, {
+      toValue: next ? 1 : 0,
+      useNativeDriver: false,
+      damping: 20,
+      stiffness: 180,
+    }).start();
+  };
+
+  const optionHeight = expandAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, FrequencyOptions.length * 70],
+  });
+
+  const current =
+    FrequencyOptions.find((o) => o.key === value) || FrequencyOptions[0];
+
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.settingRow}
+        onPress={toggleExpand}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text style={styles.settingLabel}>Reminder Frequency</Text>
+          <Text style={styles.settingSub}>{current.label}</Text>
+        </View>
+        <Text style={[styles.actionIcon, { fontSize: 14 }]}>
+          {expanded ? "▲" : "▼"}
+        </Text>
+      </TouchableOpacity>
+
+      <Animated.View style={{ overflow: "hidden", height: optionHeight }}>
+        {FrequencyOptions.map((opt) => {
+          const active = value === opt.key;
+          return (
+            <TouchableOpacity
+              key={opt.key}
+              style={styles.freqOption}
+              onPress={() => {
+                onChange(opt.key);
+                setExpanded(false);
+                expandAnim.setValue(0);
+              }}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[styles.freqRadio, active && styles.freqRadioActive]}
+              >
+                {active && <View style={styles.freqRadioDot} />}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={[styles.freqLabel, active && { color: "#7EB8F7" }]}
+                >
+                  {opt.label}
+                </Text>
+                <Text style={styles.freqDesc}>{opt.desc}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </Animated.View>
+
+      {!isLast && <View style={styles.divider} />}
+    </>
+  );
+}
+
+function SettingsPanel({
+  visible,
+  onClose,
+  settings,
+  onToggle,
+  onFrequencyChange,
+}) {
   const slideAnim = useRef(new Animated.Value(PanelWidth)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -341,6 +441,10 @@ function SettingsPanel({ visible, onClose, settings, onToggle }) {
 
           <Text style={styles.panelSectionLabel}>PREFERENCES</Text>
           <View style={styles.settingsGroup}>
+            <FrequencyRow
+              value={settings.frequency}
+              onChange={onFrequencyChange}
+            />
             <SettingRow
               label="Dark Mode"
               value={settings.darkMode}
@@ -363,6 +467,7 @@ export default function ProgressScreen() {
     dailyReminder: false,
     weeklyReport: true,
     darkMode: true,
+    frequency: "normal",
   });
   const toggleSetting = (key) =>
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -487,6 +592,9 @@ export default function ProgressScreen() {
           onClose={() => setPanelVisible(false)}
           settings={settings}
           onToggle={toggleSetting}
+          onFrequencyChange={(val) =>
+            setSettings((p) => ({ ...p, frequency: val }))
+          }
         />
       </View>
     </SafeAreaView>
@@ -687,4 +795,45 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   settingSub: { fontSize: 12, color: "#7EB8F7", fontWeight: "600" },
+  actionIcon: { color: "#7EB8F7", fontSize: 18 },
+  freqOption: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    gap: 12,
+  },
+  panelSectionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#7EB8F7",
+    letterSpacing: 1.4,
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: "#1E1E1E" },
+  freqRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: "#3A5A7A",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 1,
+  },
+  freqRadioActive: { borderColor: "#7EB8F7" },
+  freqRadioDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#7EB8F7",
+  },
+  freqLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#9ABEDE",
+    marginBottom: 2,
+  },
+  freqDesc: { fontSize: 12, color: "#5A7A9E", lineHeight: 17 },
 });
