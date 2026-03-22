@@ -21,6 +21,7 @@ export default function Habits() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState("manual");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [todayFilter, setTodayFilter] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
@@ -39,7 +40,55 @@ export default function Habits() {
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("30");
 
+  // completion log
+  const [completionLog, setCompletionLog] = useState([]);
+
+  // completion logging
+
+  const todayString = () => new Date().toDateString();
+
+  const isCompletedToday = (habitId) =>
+    completionLog.some(e => e.habitId === habitId && e.date === todayString());
+
+  const toggleCompletion = (habitId) => {
+    const today = todayString();
+    setCompletionLog(prev =>
+      prev.some(e => e.habitId === habitId && e.date === today)
+        ? prev.filter(e => !(e.habitId === habitId && e.date === today))
+        : [...prev, { habitId, date: today }]
+    );
+  };
+
   // filtering and sorting
+
+  const isScheduledToday = (habit) => {
+    if (!habit.frequency) return true;
+    const today = new Date();
+    const todayDay = today.getDay(); // 0 = Sunday
+    const type = habit.frequency.type;
+    if (type === 'daily') return true;
+    if (type === 'none') {
+      // one-time: show on its scheduled date
+      if (!habit.rawDate) return false;
+      const d = new Date(habit.rawDate);
+      return d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate();
+    }
+    if (type === 'weekly') {
+      return (habit.frequency.days || []).includes(todayDay);
+    }
+    if (type === 'interval') {
+      if (!habit.rawDate) return false;
+      const start = new Date(habit.rawDate);
+      start.setHours(0, 0, 0, 0);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((now - start) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays % habit.frequency.days === 0;
+    }
+    return true;
+  };
 
   const getFilteredAndSortedHabits = () => {
     let result = [...habits].filter(habit => {
@@ -48,8 +97,9 @@ export default function Habits() {
         (habit.category || "").toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         statusFilter === "all" ? true :
-          statusFilter === "completed" ? habit.completed : !habit.completed;
-      return matchesSearch && matchesStatus;
+          statusFilter === "completed" ? isCompletedToday(habit.id) : !isCompletedToday(habit.id);
+      const matchesToday = todayFilter ? isScheduledToday(habit) : true;
+      return matchesSearch && matchesStatus && matchesToday;
     });
 
     if (sortMode === "alphabetical") {
@@ -376,7 +426,7 @@ export default function Habits() {
 
   const renderHabit = ({ item, index }) => (
     <View style={styles.card}>
-      {sortMode === 'manual' && !searchQuery && statusFilter === 'all' && (
+      {sortMode === 'manual' && !searchQuery && statusFilter === 'all' && !todayFilter && (
         <View style={styles.moveButtons}>
           <TouchableOpacity onPress={() => moveHabit(item.id, -1)}>
             <Ionicons name="chevron-up" size={20} color="#8e8e93" />
@@ -397,10 +447,10 @@ export default function Habits() {
       </View>
       <View style={styles.buttonGroup}>
         <TouchableOpacity
-          style={item.completed ? styles.compBtn : styles.tbdBtn}
-          onPress={() => setHabits(prev => prev.map(h => h.id === item.id ? { ...h, completed: !h.completed } : h))}
+          style={isCompletedToday(item.id) ? styles.compBtn : styles.tbdBtn}
+          onPress={() => toggleCompletion(item.id)}
         >
-          <Text style={styles.btnTextSmall}>{item.completed ? "Done" : "TBD"}</Text>
+          <Text style={styles.btnTextSmall}>{isCompletedToday(item.id) ? "Done" : "TBD"}</Text>
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <TouchableOpacity onPress={() => {
@@ -469,6 +519,12 @@ export default function Habits() {
                 <Text style={[styles.sortBtnText, statusFilter === item.value && styles.sortBtnTextActive]}>{item.label}</Text>
               </TouchableOpacity>
             ))}
+            <TouchableOpacity
+              onPress={() => setTodayFilter(prev => !prev)}
+              style={[styles.sortBtn, todayFilter && styles.sortBtnToday]}
+            >
+              <Text style={[styles.sortBtnText, todayFilter && styles.sortBtnTextActive]}>Today's Habits</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -497,13 +553,13 @@ export default function Habits() {
         keyExtractor={item => item.id}
         ListEmptyComponent={() => {
           const isEmpty = habits.length === 0;
-          const isFiltered = searchQuery.length > 0 || statusFilter !== 'all';
+          const isFiltered = searchQuery.length > 0 || statusFilter !== 'all' || todayFilter;
           return (
             <View style={styles.placeholderContainer}>
-              <Text style={styles.placeholderEmoji}>{isFiltered && !isEmpty ? "🔭" : "🌱"}</Text>
+              <Text style={styles.placeholderEmoji}>{isEmpty ? "🌱" : "🔭"}</Text>
               <Text style={styles.placeholderTitle}>{isEmpty ? "No habits yet" : "No habits found"}</Text>
               <Text style={styles.placeholderSubtitle}>
-                {isEmpty || !isFiltered ? "Press the plus icon to get started" : "Try a different keyword or status"}
+                {isEmpty ? "Press the plus button to get started" : "Try a different keyword or status"}
               </Text>
             </View>
           );
@@ -637,6 +693,7 @@ const styles = StyleSheet.create({
   sortContainer: { flexDirection: 'row', gap: 5, flexWrap: 'wrap' },
   sortBtn: { paddingVertical: 6, paddingHorizontal: 8, borderRadius: 12, backgroundColor: '#1c1c1e' },
   sortBtnActive: { backgroundColor: '#0a84ff' },
+  sortBtnToday: { backgroundColor: '#34c759' },
   sortBtnText: { color: '#8e8e93', fontSize: 11, fontWeight: '600' },
   sortBtnTextActive: { color: 'white' },
   listContent: { paddingHorizontal: 20, paddingTop: 5, paddingBottom: 20 },
