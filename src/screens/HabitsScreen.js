@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
   Pressable,
   Alert,
 } from "react-native";
@@ -516,8 +516,9 @@ export default function Habits() {
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
             onPress={() => { setShowForm(false); setEditingId(null); }}
           />
-          <KeyboardAvoidingView behavior="padding" style={styles.formPosition}>
+          <View style={styles.formPosition}>
             <View style={styles.compactForm}>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.formTitle}>{editingId ? "Edit Habit" : "New Habit"}</Text>
 
               <TextInput
@@ -600,8 +601,9 @@ export default function Habits() {
                   <Text style={styles.btnTextLarge}>Save Habit</Text>
                 </TouchableOpacity>
               </View>
+              </ScrollView>
             </View>
-          </KeyboardAvoidingView>
+          </View>
         </>
       )}
       {!showForm && (
