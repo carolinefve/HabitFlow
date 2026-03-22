@@ -19,7 +19,7 @@ const GENERAL_CATEGORY = "General";
 export default function Habits() {
   const [habits, setHabits] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortMode, setSortMode] = useState("newest");
+  const [sortMode, setSortMode] = useState("manual");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -358,8 +358,29 @@ export default function Habits() {
 
   // habit card
 
-  const renderHabit = ({ item }) => (
+  const moveHabit = (id, direction) => {
+    setHabits(prev => {
+      const index = prev.findIndex(h => h.id === id);
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= prev.length) return prev;
+      const result = [...prev];
+      [result[index], result[newIndex]] = [result[newIndex], result[index]];
+      return result;
+    });
+  };
+
+  const renderHabit = ({ item, index }) => (
     <View style={styles.card}>
+      {sortMode === 'manual' && (
+        <View style={styles.moveButtons}>
+          <TouchableOpacity onPress={() => moveHabit(item.id, -1)}>
+            <Ionicons name="chevron-up" size={20} color="#8e8e93" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => moveHabit(item.id, 1)}>
+            <Ionicons name="chevron-down" size={20} color="#8e8e93" />
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <Text style={styles.cardCategory}>{item.category}</Text>
         <Text style={styles.cardDesc}>{item.description}</Text>
@@ -449,7 +470,7 @@ export default function Habits() {
         <View style={styles.filterRow}>
           <Text style={styles.sortLabel}>Sort:</Text>
           <View style={styles.sortContainer}>
-            {['Newest', 'Alphabetical', 'Date/Time'].map((label) => {
+            {['Manual', 'Newest', 'Alphabetical', 'Date/Time'].map((label) => {
               const mode = label === 'Alphabetical' ? 'alphabetical' : label.toLowerCase();
               return (
                 <TouchableOpacity
@@ -606,17 +627,19 @@ const styles = StyleSheet.create({
   filterWrapper: { paddingHorizontal: 20, marginBottom: 15, gap: 12 },
   filterRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sortLabel: { color: '#8e8e93', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', width: 50 },
-  sortContainer: { flexDirection: 'row', gap: 8 },
-  sortBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#1c1c1e' },
+  sortContainer: { flexDirection: 'row', gap: 5, flexWrap: 'wrap' },
+  sortBtn: { paddingVertical: 6, paddingHorizontal: 8, borderRadius: 12, backgroundColor: '#1c1c1e' },
   sortBtnActive: { backgroundColor: '#0a84ff' },
-  sortBtnText: { color: '#8e8e93', fontSize: 12, fontWeight: '600' },
+  sortBtnText: { color: '#8e8e93', fontSize: 11, fontWeight: '600' },
   sortBtnTextActive: { color: 'white' },
   listContent: { paddingHorizontal: 20, paddingTop: 5, paddingBottom: 20 },
   placeholderContainer: { marginTop: 60, alignItems: 'center' },
   placeholderEmoji: { fontSize: 70, marginBottom: 20 },
   placeholderTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
   placeholderSubtitle: { color: '#8e8e93', fontSize: 16, fontWeight: '400' },
-  card: { backgroundColor: "#143296", borderRadius: 18, paddingVertical: 14, paddingHorizontal: 22, marginBottom: 12, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: '#091642' },
+  card: { backgroundColor: "#143296", borderRadius: 18, paddingVertical: 8, paddingHorizontal: 22, marginBottom: 8, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: '#091642' },
+  moveButtons: { flexDirection: 'column', justifyContent: 'center', gap: 4, paddingRight: 10 },
+  dragHandle: { paddingRight: 10, justifyContent: 'center' },
   cardCategory: { color: "#0a84ff", fontSize: 12, fontWeight: "800", textTransform: "uppercase", marginBottom: 2 },
   cardDesc: { color: "white", fontSize: 22, fontWeight: "700" },
   cardMeta: { color: "#8e8e93", fontSize: 14, marginTop: 2 },
