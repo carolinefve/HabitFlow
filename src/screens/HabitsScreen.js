@@ -41,12 +41,12 @@ export default function Habits() {
 
   const getFilteredAndSortedHabits = () => {
     let result = [...habits].filter(habit => {
-      const matchesSearch = (habit.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        (habit.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
         (habit.category || "").toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesStatus = statusFilter === "all" ? true :
-        statusFilter === "completed" ? habit.completed : !habit.completed;
-
+      const matchesStatus =
+        statusFilter === "all" ? true :
+          statusFilter === "completed" ? habit.completed : !habit.completed;
       return matchesSearch && matchesStatus;
     });
 
@@ -94,68 +94,53 @@ export default function Habits() {
       return;
     }
 
-    Alert.alert(
-      cat,
-      "What would you like to do with this category?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Rename",
-          onPress: () => {
-            Alert.prompt(
-              "Rename Category",
-              `Rename "${cat}" to:`,
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Save",
-                  onPress: (newName) => {
-                    const trimmed = newName?.trim();
-                    if (!trimmed) return;
-                    if (categories.includes(trimmed)) {
-                      Alert.alert("Already exists", "A category with that name already exists.");
-                      return;
-                    }
-                    // update categories, habits, and form selection
-                    setCategories(prev => prev.map(c => c === cat ? trimmed : c));
-                    setHabits(prev => prev.map(h => h.category === cat ? { ...h, category: trimmed } : h));
-                    // Update selected category in form if active
-                    if (category === cat) setCategory(trimmed);
-                  }
+    Alert.alert(cat, "What would you like to do with this category?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Rename",
+        onPress: () => {
+          Alert.prompt("Rename Category", `Rename "${cat}" to:`, [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Save",
+              onPress: (newName) => {
+                const trimmed = newName?.trim();
+                if (!trimmed) return;
+                if (categories.includes(trimmed)) {
+                  Alert.alert("Already exists", "A category with that name already exists.");
+                  return;
                 }
-              ],
-              "plain-text",
-              cat
-            );
-          }
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            const habitCount = habits.filter(h => h.category === cat).length;
-            const message = habitCount > 0
-              ? `Delete "${cat}"? The ${habitCount} habit${habitCount !== 1 ? 's' : ''} in this category will be moved to General.`
-              : `Delete "${cat}"?`;
-
-            Alert.alert("Delete Category", message, [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => {
-                  setCategories(prev => prev.filter(c => c !== cat));
-                  // move habits to general
-                  setHabits(prev => prev.map(h => h.category === cat ? { ...h, category: GENERAL_CATEGORY } : h));
-                  // reset form category if needed
-                  if (category === cat) setCategory(GENERAL_CATEGORY);
-                }
+                setCategories(prev => prev.map(c => c === cat ? trimmed : c));
+                setHabits(prev => prev.map(h => h.category === cat ? { ...h, category: trimmed } : h));
+                if (category === cat) setCategory(trimmed);
               }
-            ]);
-          }
+            }
+          ], "plain-text", cat);
         }
-      ]
-    );
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          const habitCount = habits.filter(h => h.category === cat).length;
+          const message = habitCount > 0
+            ? `Delete "${cat}"? The ${habitCount} habit${habitCount !== 1 ? 's' : ''} in this category will be moved to General.`
+            : `Delete "${cat}"?`;
+          Alert.alert("Delete Category", message, [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: () => {
+                setCategories(prev => prev.filter(c => c !== cat));
+                setHabits(prev => prev.map(h => h.category === cat ? { ...h, category: GENERAL_CATEGORY } : h));
+                if (category === cat) setCategory(GENERAL_CATEGORY);
+              }
+            }
+          ]);
+        }
+      }
+    ]);
   };
 
   // save / reset / delete
@@ -165,12 +150,10 @@ export default function Habits() {
       Alert.alert("Missing Name", "Please enter a name for your habit before saving.", [{ text: "OK" }]);
       return;
     }
-
     if (frequencyType === 'weekly' && selectedDays.length === 0) {
       Alert.alert("Select Days", "Please select at least one day for your weekly habit.", [{ text: "OK" }]);
       return;
     }
-
     if (frequencyType === 'interval' && (!intervalDays || parseInt(intervalDays) < 1)) {
       Alert.alert("Invalid Interval", "Please enter a valid number of days (1 or more).", [{ text: "OK" }]);
       return;
@@ -190,49 +173,30 @@ export default function Habits() {
       minutes: parseInt(durationMinutes) || 0
     };
 
+    const habitData = {
+      description,
+      category,
+      rawDate: standardizedDate,
+      rawTime: time,
+      dateString: date.toLocaleDateString('en-GB'),
+      timeString: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      frequency,
+      duration,
+    };
+
     if (editingId) {
-      Alert.alert(
-        "Save Changes?",
-        "Do you want to save the changes to this habit?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Save",
-            onPress: () => {
-              setHabits(prev => prev.map(habit =>
-                habit.id === editingId
-                  ? {
-                    ...habit,
-                    description,
-                    category,
-                    rawDate: standardizedDate,
-                    rawTime: time,
-                    dateString: date.toLocaleDateString('en-GB'),
-                    timeString: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                    frequency,
-                    duration
-                  }
-                  : habit
-              ));
-              resetForm();
-            }
+      Alert.alert("Save Changes?", "Do you want to save the changes to this habit?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Save",
+          onPress: () => {
+            setHabits(prev => prev.map(h => h.id === editingId ? { ...h, ...habitData } : h));
+            resetForm();
           }
-        ]
-      );
+        }
+      ]);
     } else {
-      const newHabit = {
-        id: Date.now().toString(),
-        description,
-        category,
-        rawDate: standardizedDate,
-        rawTime: time,
-        dateString: date.toLocaleDateString('en-GB'),
-        timeString: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        completed: false,
-        frequency,
-        duration,
-      };
-      setHabits([newHabit, ...habits]);
+      setHabits([{ id: Date.now().toString(), completed: false, ...habitData }, ...habits]);
       resetForm();
     }
   };
@@ -250,14 +214,10 @@ export default function Habits() {
   };
 
   const handleDelete = (habitId, habitName) => {
-    Alert.alert(
-      "Delete Habit",
-      `Are you sure you want to delete "${habitName}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => setHabits(prev => prev.filter(h => h.id !== habitId)) }
-      ]
-    );
+    Alert.alert("Delete Habit", `Are you sure you want to delete "${habitName}"?`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => setHabits(prev => prev.filter(h => h.id !== habitId)) }
+    ]);
   };
 
   // display helpers
@@ -274,49 +234,43 @@ export default function Habits() {
 
   const getFrequencyDisplay = (frequency) => {
     if (!frequency || frequency.type === 'daily') return "Every day";
-
     if (frequency.type === 'interval') {
       return frequency.days === 1 ? "Every day" : `Every ${frequency.days} days`;
     }
 
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const days = frequency.days;
-
-    const sortedDays = [...days].sort((a, b) => {
-      const aVal = a === 0 ? 7 : a;
-      const bVal = b === 0 ? 7 : b;
-      return aVal - bVal;
-    });
+    const sortedDays = [...frequency.days].sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b));
+    const dayName = d => d === 0 ? 'Sun' : dayNames[d - 1];
 
     if (sortedDays.length === 7) return "Every day";
+    if (sortedDays.length === 5 && [1, 2, 3, 4, 5].every(d => sortedDays.includes(d))) return "Weekdays";
+    if (sortedDays.length === 2 && [6, 0].every(d => sortedDays.includes(d))) return "Weekends";
 
-    const weekdays = [1, 2, 3, 4, 5];
-    const isWeekdays = sortedDays.length === 5 && weekdays.every(d => sortedDays.includes(d));
-    if (isWeekdays) return "Weekdays";
-
-    const weekends = [6, 0];
-    const isWeekends = sortedDays.length === 2 && weekends.every(d => sortedDays.includes(d));
-    if (isWeekends) return "Weekends";
-
-    const isConsecutive = sortedDays.every((day, i) => {
-      if (i === 0) return true;
-      const prevDay = sortedDays[i - 1];
-      if (prevDay === 0 && day === 1) return true;
-      return day === prevDay + 1;
-    });
-
+    const isConsecutive = sortedDays.every((day, i) =>
+      i === 0 || day === sortedDays[i - 1] + 1 || (sortedDays[i - 1] === 0 && day === 1)
+    );
     if (isConsecutive && sortedDays.length > 2) {
-      const firstDay = sortedDays[0];
-      const lastDay = sortedDays[sortedDays.length - 1];
-      const firstName = firstDay === 0 ? 'Sun' : dayNames[firstDay - 1];
-      const lastName = lastDay === 0 ? 'Sun' : dayNames[lastDay - 1];
-      return `${firstName}-${lastName}`;
+      return `${dayName(sortedDays[0])}-${dayName(sortedDays[sortedDays.length - 1])}`;
     }
 
-    return sortedDays.map(d => d === 0 ? 'Sun' : dayNames[d - 1]).join(', ');
+    return sortedDays.map(dayName).join(', ');
   };
 
   // sub-components
+
+  const Stepper = ({ value, onDecrement, onIncrement }) => (
+    <View style={styles.stepperContainerCentered}>
+      <TouchableOpacity style={styles.stepperButton} onPress={onDecrement}>
+        <Ionicons name="remove" size={20} color="white" />
+      </TouchableOpacity>
+      <View style={styles.stepperValueContainer}>
+        <Text style={styles.stepperValueText}>{value}</Text>
+      </View>
+      <TouchableOpacity style={styles.stepperButton} onPress={onIncrement}>
+        <Ionicons name="add" size={20} color="white" />
+      </TouchableOpacity>
+    </View>
+  );
 
   const DurationPicker = () => (
     <View style={styles.durationContainer}>
@@ -324,44 +278,19 @@ export default function Habits() {
       <View style={styles.durationRow}>
         <View style={styles.durationSection}>
           <Text style={styles.durationLabel}>Hours</Text>
-          <View style={styles.stepperContainerCentered}>
-            <TouchableOpacity
-              style={styles.stepperButton}
-              onPress={() => { const v = parseInt(durationHours) || 0; if (v > 0) setDurationHours(String(v - 1)); }}
-            >
-              <Ionicons name="remove" size={20} color="white" />
-            </TouchableOpacity>
-            <View style={styles.stepperValueContainer}>
-              <Text style={styles.stepperValueText}>{durationHours || "0"}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.stepperButton}
-              onPress={() => { const v = parseInt(durationHours) || 0; if (v < 23) setDurationHours(String(v + 1)); }}
-            >
-              <Ionicons name="add" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
+          <Stepper
+            value={durationHours || "0"}
+            onDecrement={() => { const v = parseInt(durationHours) || 0; if (v > 0) setDurationHours(String(v - 1)); }}
+            onIncrement={() => { const v = parseInt(durationHours) || 0; if (v < 23) setDurationHours(String(v + 1)); }}
+          />
         </View>
-
         <View style={styles.durationSection}>
           <Text style={styles.durationLabel}>Minutes</Text>
-          <View style={styles.stepperContainerCentered}>
-            <TouchableOpacity
-              style={styles.stepperButton}
-              onPress={() => { const v = parseInt(durationMinutes) || 0; if (v >= 5) setDurationMinutes(String(v - 5)); }}
-            >
-              <Ionicons name="remove" size={20} color="white" />
-            </TouchableOpacity>
-            <View style={styles.stepperValueContainer}>
-              <Text style={styles.stepperValueText}>{durationMinutes || "0"}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.stepperButton}
-              onPress={() => { const v = parseInt(durationMinutes) || 0; if (v < 55) setDurationMinutes(String(v + 5)); }}
-            >
-              <Ionicons name="add" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
+          <Stepper
+            value={durationMinutes || "0"}
+            onDecrement={() => { const v = parseInt(durationMinutes) || 0; if (v >= 5) setDurationMinutes(String(v - 5)); }}
+            onIncrement={() => { const v = parseInt(durationMinutes) || 0; if (v < 55) setDurationMinutes(String(v + 5)); }}
+          />
         </View>
       </View>
     </View>
@@ -374,15 +303,11 @@ export default function Habits() {
     ];
 
     const toggleDay = (dayValue) => {
-      if (selectedDays.includes(dayValue)) {
-        setSelectedDays(selectedDays.filter(d => d !== dayValue));
-      } else {
-        setSelectedDays([...selectedDays, dayValue].sort((a, b) => {
-          const aVal = a === 0 ? 7 : a;
-          const bVal = b === 0 ? 7 : b;
-          return aVal - bVal;
-        }));
-      }
+      setSelectedDays(prev =>
+        prev.includes(dayValue)
+          ? prev.filter(d => d !== dayValue)
+          : [...prev, dayValue].sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b))
+      );
     };
 
     return (
@@ -419,23 +344,11 @@ export default function Habits() {
         {frequencyType === 'interval' && (
           <View style={styles.intervalRowCentered}>
             <Text style={styles.intervalLabel}>Every</Text>
-            <View style={styles.stepperContainerCentered}>
-              <TouchableOpacity
-                style={styles.stepperButton}
-                onPress={() => { const v = parseInt(intervalDays) || 1; if (v > 1) setIntervalDays(String(v - 1)); }}
-              >
-                <Ionicons name="remove" size={20} color="white" />
-              </TouchableOpacity>
-              <View style={styles.stepperValueContainer}>
-                <Text style={styles.stepperValueText}>{intervalDays || "1"}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.stepperButton}
-                onPress={() => { const v = parseInt(intervalDays) || 1; if (v < 99) setIntervalDays(String(v + 1)); }}
-              >
-                <Ionicons name="add" size={20} color="white" />
-              </TouchableOpacity>
-            </View>
+            <Stepper
+              value={intervalDays || "1"}
+              onDecrement={() => { const v = parseInt(intervalDays) || 1; if (v > 1) setIntervalDays(String(v - 1)); }}
+              onIncrement={() => { const v = parseInt(intervalDays) || 1; if (v < 99) setIntervalDays(String(v + 1)); }}
+            />
             <Text style={styles.intervalLabel}>days</Text>
           </View>
         )}
@@ -497,12 +410,6 @@ export default function Habits() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>My Habits</Text>
-        <TouchableOpacity
-          style={styles.toggleFormButton}
-          onPress={() => { setShowForm(!showForm); if (showForm) setEditingId(null); }}
-        >
-          <Text style={styles.toggleFormText}>Add</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
@@ -520,7 +427,7 @@ export default function Habits() {
       </View>
 
       <View style={styles.filterWrapper}>
-        <View style={styles.statusSection}>
+        <View style={styles.filterRow}>
           <Text style={styles.sortLabel}>Status:</Text>
           <View style={styles.sortContainer}>
             {[
@@ -539,7 +446,7 @@ export default function Habits() {
           </View>
         </View>
 
-        <View style={styles.sortSection}>
+        <View style={styles.filterRow}>
           <Text style={styles.sortLabel}>Sort:</Text>
           <View style={styles.sortContainer}>
             {['Newest', 'Alphabetical', 'Date/Time'].map((label) => {
@@ -563,21 +470,14 @@ export default function Habits() {
         renderItem={renderHabit}
         keyExtractor={item => item.id}
         ListEmptyComponent={() => {
-          const isSearching = searchQuery.length > 0;
-          const isFiltered = statusFilter !== 'all';
-          const hasNoHabitsAtAll = habits.length === 0;
+          const isEmpty = habits.length === 0;
+          const isFiltered = searchQuery.length > 0 || statusFilter !== 'all';
           return (
             <View style={styles.placeholderContainer}>
-              <Text style={styles.placeholderEmoji}>
-                {hasNoHabitsAtAll ? "🌱" : (isSearching || isFiltered ? "🔭" : "🌱")}
-              </Text>
-              <Text style={styles.placeholderTitle}>
-                {hasNoHabitsAtAll ? "No habits yet" : "No habits found"}
-              </Text>
+              <Text style={styles.placeholderEmoji}>{isFiltered && !isEmpty ? "🔭" : "🌱"}</Text>
+              <Text style={styles.placeholderTitle}>{isEmpty ? "No habits yet" : "No habits found"}</Text>
               <Text style={styles.placeholderSubtitle}>
-                {hasNoHabitsAtAll
-                  ? "Press Add to get started"
-                  : (isSearching || isFiltered ? "Try a different keyword or status" : "Press Add to get started")}
+                {isEmpty || !isFiltered ? "Press the plus icon to get started" : "Try a different keyword or status"}
               </Text>
             </View>
           );
@@ -593,9 +493,7 @@ export default function Habits() {
           />
           <KeyboardAvoidingView behavior="padding" style={styles.formPosition}>
             <View style={styles.compactForm}>
-              <View style={styles.formHeader}>
-                <Text style={styles.formTitle}>{editingId ? "Edit Habit" : "New Habit"}</Text>
-              </View>
+              <Text style={styles.formTitle}>{editingId ? "Edit Habit" : "New Habit"}</Text>
 
               <TextInput
                 placeholder="Habit Name"
@@ -632,14 +530,13 @@ export default function Habits() {
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity style={styles.catBtnAdd} onPress={handleAddCustomCategory}>
-                  <Text style={styles.catTextAdd}>New +</Text>
+                  <Text style={styles.catText}>New +</Text>
                 </TouchableOpacity>
               </View>
 
               {/* date and time */}
               <Text style={styles.sectionLabel}>Start Date &amp; Time</Text>
               <View style={styles.dateTimeRow}>
-                {/* date */}
                 <View style={styles.pickerField}>
                   <Text style={styles.fieldLabel}>Date</Text>
                   <DateTimePicker
@@ -649,10 +546,8 @@ export default function Habits() {
                     themeVariant="dark"
                     textColor="white"
                     onChange={(e, d) => d && setDate(d)}
-                    style={styles.dateTimePicker}
                   />
                 </View>
-                {/* time */}
                 <View style={styles.pickerField}>
                   <Text style={styles.fieldLabel}>Time</Text>
                   <DateTimePicker
@@ -662,7 +557,6 @@ export default function Habits() {
                     themeVariant="dark"
                     textColor="white"
                     onChange={(e, t) => t && setTime(t)}
-                    style={styles.dateTimePicker}
                   />
                 </View>
               </View>
@@ -685,6 +579,15 @@ export default function Habits() {
           </KeyboardAvoidingView>
         </>
       )}
+      {!showForm && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => { setShowForm(!showForm); if (showForm) setEditingId(null); }}
+        >
+          <Ionicons name="add" size={30} color="white" />
+        </TouchableOpacity>
+      )}
+
     </SafeAreaView>
   );
 }
@@ -695,13 +598,13 @@ const styles = StyleSheet.create({
   headerText: { color: "white", fontSize: 28, fontWeight: "bold" },
   toggleFormButton: { backgroundColor: "#1c1c1e", paddingHorizontal: 15, paddingVertical: 8, borderRadius: 15 },
   toggleFormText: { color: "#0a84ff", fontWeight: "600" },
+  fab: { position: 'absolute', bottom: 30, right: 25, width: 56, height: 56, borderRadius: 28, backgroundColor: '#0a84ff', justifyContent: 'center', alignItems: 'center' },
   searchContainer: { paddingHorizontal: 20, marginBottom: 15 },
   searchBarWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: "#1c1c1e", borderRadius: 12, borderWidth: 1, borderColor: '#2c2c2e', paddingHorizontal: 12 },
   searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, color: "white", paddingVertical: 12, fontSize: 16 },
   filterWrapper: { paddingHorizontal: 20, marginBottom: 15, gap: 12 },
-  sortSection: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statusSection: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  filterRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sortLabel: { color: '#8e8e93', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', width: 50 },
   sortContainer: { flexDirection: 'row', gap: 8 },
   sortBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#1c1c1e' },
@@ -726,12 +629,9 @@ const styles = StyleSheet.create({
   deleteBtnText: { color: "#ff453a", fontSize: 13, fontWeight: "600" },
   formPosition: { position: 'absolute', bottom: 0, left: 0, right: 0 },
   compactForm: { backgroundColor: "#1c1c1e", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 15, paddingBottom: 40, borderTopWidth: 1, borderColor: "#2c2c2e" },
-  formTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
-  formHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 15, position: 'relative' },
-
+  formTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
   input: { backgroundColor: "#2c2c2e", color: "white", padding: 12, borderRadius: 10, fontSize: 16, marginBottom: 15 },
   sectionLabel: { color: '#8e8e93', fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase' },
-  sectionHint: { color: '#3a3a3c', fontSize: 11, fontWeight: '400', textTransform: 'none' },
 
   // category
   categoryRow: { flexDirection: "row", gap: 6, marginBottom: 15, flexWrap: 'wrap' },
@@ -741,7 +641,6 @@ const styles = StyleSheet.create({
   catBtnAdd: { backgroundColor: "#3a3a3c", paddingVertical: 7, paddingHorizontal: 9, borderRadius: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: '#8e8e93', flexShrink: 0 },
   catText: { color: '#8e8e93', fontSize: 12, fontWeight: '600' },
   catTextActive: { color: 'white', fontSize: 12, fontWeight: '600' },
-  catTextAdd: { color: "#8e8e93", fontSize: 12, fontWeight: '600' },
 
   // frequency
   frequencyContainer: { marginBottom: 15 },
@@ -773,29 +672,9 @@ const styles = StyleSheet.create({
   stepperValueText: { color: 'white', fontSize: 18, fontWeight: '700' },
 
   // date/time row
-  dateTimeRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 15,
-  },
-  pickerField: {
-    flex: 1,
-    backgroundColor: "#2c2c2e",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  fieldLabel: {
-    color: "#8e8e93",
-    fontSize: 11,
-    fontWeight: "600",
-    textTransform: 'none',
-  },
-  dateTimePicker: {},
+  dateTimeRow: { flexDirection: "row", gap: 8, marginBottom: 15 },
+  pickerField: { flex: 1, backgroundColor: "#2c2c2e", paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  fieldLabel: { color: "#8e8e93", fontSize: 11, fontWeight: "600" },
 
   formButtonRow: { flexDirection: 'row', gap: 10 },
   cancelBtn: { flex: 1, backgroundColor: "#3a3a3c", padding: 14, borderRadius: 12, alignItems: "center" },
