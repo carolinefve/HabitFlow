@@ -609,7 +609,7 @@ export default function Habits() {
       {!showForm && (
         <TouchableOpacity
           style={styles.fab}
-          onPress={() => { setShowForm(!showForm); if (showForm) setEditingId(null); }}
+          onPress={() => { setDate(new Date()); setTime(new Date()); setShowForm(true); }}
         >
           <Ionicons name="add" size={30} color="white" />
         </TouchableOpacity>
