@@ -236,7 +236,7 @@ export default function Habits() {
 
   const getFrequencyDisplay = (frequency) => {
     if (!frequency || frequency.type === 'daily') return "Every day";
-    if (frequency.type === 'none') return "One-Time";
+    if (frequency.type === 'none') return "One Time";
     if (frequency.type === 'interval') {
       return frequency.days === 1 ? "Every day" : `Every ${frequency.days} days`;
     }
@@ -324,7 +324,7 @@ export default function Habits() {
               onPress={() => setFrequencyType(type)}
             >
               <Text style={[styles.freqBtnText, frequencyType === type && styles.freqBtnTextActive]}>
-                {type === 'interval' ? 'Every N Days' : type === 'none' ? 'One-Time' : type.charAt(0).toUpperCase() + type.slice(1)}
+                {type === 'interval' ? 'Every N Days' : type === 'none' ? 'One Time' : type.charAt(0).toUpperCase() + type.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
