@@ -236,6 +236,7 @@ export default function Habits() {
 
   const getFrequencyDisplay = (frequency) => {
     if (!frequency || frequency.type === 'daily') return "Every day";
+    if (frequency.type === 'none') return "One-Time";
     if (frequency.type === 'interval') {
       return frequency.days === 1 ? "Every day" : `Every ${frequency.days} days`;
     }
@@ -316,14 +317,14 @@ export default function Habits() {
       <View style={styles.frequencyContainer}>
         <Text style={styles.sectionLabel}>Repeat</Text>
         <View style={styles.frequencyTypeRow}>
-          {['daily', 'weekly', 'interval'].map((type) => (
+          {['none', 'daily', 'weekly', 'interval'].map((type) => (
             <TouchableOpacity
               key={type}
               style={[styles.freqBtn, frequencyType === type && styles.freqBtnActive]}
               onPress={() => setFrequencyType(type)}
             >
               <Text style={[styles.freqBtnText, frequencyType === type && styles.freqBtnTextActive]}>
-                {type === 'interval' ? 'Every N Days' : type.charAt(0).toUpperCase() + type.slice(1)}
+                {type === 'interval' ? 'Every N Days' : type === 'none' ? 'One-Time' : type.charAt(0).toUpperCase() + type.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -519,88 +520,88 @@ export default function Habits() {
           <View style={styles.formPosition}>
             <View style={styles.compactForm}>
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <Text style={styles.formTitle}>{editingId ? "Edit Habit" : "New Habit"}</Text>
+                <Text style={styles.formTitle}>{editingId ? "Edit Habit" : "New Habit"}</Text>
 
-              <TextInput
-                placeholder="Habit Name"
-                placeholderTextColor="#6b7280"
-                style={styles.input}
-                value={description}
-                onChangeText={setDescription}
-                autoFocus
-              />
+                <TextInput
+                  placeholder="Habit Name"
+                  placeholderTextColor="#6b7280"
+                  style={styles.input}
+                  value={description}
+                  onChangeText={setDescription}
+                  autoFocus
+                />
 
-              {/* category */}
-              <Text style={styles.sectionLabel}>
-                Category
-                <Text style={styles.sectionLabel}> - Long press to edit or delete</Text>
-              </Text>
-              <View style={styles.categoryRow}>
-                {categories.map((cat) => (
-                  <TouchableOpacity
-                    key={cat}
-                    style={[
-                      category === cat ? styles.catBtnActive : styles.catBtn,
-                      cat === GENERAL_CATEGORY && styles.catBtnGeneral,
-                    ]}
-                    onPress={() => setCategory(cat)}
-                    onLongPress={() => handleLongPressCategory(cat)}
-                    delayLongPress={400}
-                  >
-                    <Text
-                      style={[styles.catText, category === cat && styles.catTextActive]}
-                      numberOfLines={1}
+                {/* category */}
+                <Text style={styles.sectionLabel}>
+                  Category
+                  <Text style={styles.sectionLabel}> - Long press to edit or delete</Text>
+                </Text>
+                <View style={styles.categoryRow}>
+                  {categories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      style={[
+                        category === cat ? styles.catBtnActive : styles.catBtn,
+                        cat === GENERAL_CATEGORY && styles.catBtnGeneral,
+                      ]}
+                      onPress={() => setCategory(cat)}
+                      onLongPress={() => handleLongPressCategory(cat)}
+                      delayLongPress={400}
                     >
-                      {cat === GENERAL_CATEGORY ? "General" : cat}
-                    </Text>
+                      <Text
+                        style={[styles.catText, category === cat && styles.catTextActive]}
+                        numberOfLines={1}
+                      >
+                        {cat === GENERAL_CATEGORY ? "General" : cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity style={styles.catBtnAdd} onPress={handleAddCustomCategory}>
+                    <Text style={styles.catText}>New +</Text>
                   </TouchableOpacity>
-                ))}
-                <TouchableOpacity style={styles.catBtnAdd} onPress={handleAddCustomCategory}>
-                  <Text style={styles.catText}>New +</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* date and time */}
-              <Text style={styles.sectionLabel}>Start Date &amp; Time</Text>
-              <View style={styles.dateTimeRow}>
-                <View style={styles.pickerField}>
-                  <Text style={styles.fieldLabel}>Date</Text>
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display="compact"
-                    themeVariant="dark"
-                    textColor="white"
-                    onChange={(e, d) => d && setDate(d)}
-                  />
                 </View>
-                <View style={styles.pickerField}>
-                  <Text style={styles.fieldLabel}>Time</Text>
-                  <DateTimePicker
-                    value={time}
-                    mode="time"
-                    display="compact"
-                    themeVariant="dark"
-                    textColor="white"
-                    onChange={(e, t) => t && setTime(t)}
-                  />
+
+                {/* date and time */}
+                <Text style={styles.sectionLabel}>Start Date &amp; Time</Text>
+                <View style={styles.dateTimeRow}>
+                  <View style={styles.pickerField}>
+                    <Text style={styles.fieldLabel}>Date</Text>
+                    <DateTimePicker
+                      value={date}
+                      mode="date"
+                      display="compact"
+                      themeVariant="dark"
+                      textColor="white"
+                      onChange={(e, d) => d && setDate(d)}
+                    />
+                  </View>
+                  <View style={styles.pickerField}>
+                    <Text style={styles.fieldLabel}>Time</Text>
+                    <DateTimePicker
+                      value={time}
+                      mode="time"
+                      display="compact"
+                      themeVariant="dark"
+                      textColor="white"
+                      onChange={(e, t) => t && setTime(t)}
+                    />
+                  </View>
                 </View>
-              </View>
 
-              {/* duration */}
-              <DurationPicker />
+                {/* duration */}
+                <DurationPicker />
 
-              {/* frequency */}
-              <FrequencyPicker />
+                {/* frequency */}
+                <FrequencyPicker />
 
-              <View style={styles.formButtonRow}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
-                  <Text style={styles.btnTextLarge}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.saveBtn} onPress={saveHabit}>
-                  <Text style={styles.btnTextLarge}>Save Habit</Text>
-                </TouchableOpacity>
-              </View>
+                <View style={styles.formButtonRow}>
+                  <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
+                    <Text style={styles.btnTextLarge}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.saveBtn} onPress={saveHabit}>
+                    <Text style={styles.btnTextLarge}>Save Habit</Text>
+                  </TouchableOpacity>
+                </View>
               </ScrollView>
             </View>
           </View>
@@ -673,8 +674,8 @@ const styles = StyleSheet.create({
 
   // frequency
   frequencyContainer: { marginBottom: 15 },
-  frequencyTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  freqBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: '#2c2c2e', alignItems: 'center' },
+  frequencyTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
+  freqBtn: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, backgroundColor: '#2c2c2e', alignItems: 'center' },
   freqBtnActive: { backgroundColor: '#0a84ff' },
   freqBtnText: { color: '#8e8e93', fontSize: 13, fontWeight: '600' },
   freqBtnTextActive: { color: 'white', fontSize: 13, fontWeight: '600' },
