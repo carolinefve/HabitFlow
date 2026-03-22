@@ -64,16 +64,23 @@ export default function Habits() {
   const isScheduledToday = (habit) => {
     if (!habit.frequency) return true;
     const today = new Date();
-    const todayDay = today.getDay(); // 0 = Sunday
+    today.setHours(0, 0, 0, 0);
+    const todayDay = new Date().getDay();
     const type = habit.frequency.type;
+
+    // never show before the start date
+    if (habit.rawDate) {
+      const start = new Date(habit.rawDate);
+      start.setHours(0, 0, 0, 0);
+      if (today < start) return false;
+    }
+
     if (type === 'daily') return true;
     if (type === 'none') {
-      // one-time: show on its scheduled date
       if (!habit.rawDate) return false;
       const d = new Date(habit.rawDate);
-      return d.getFullYear() === today.getFullYear() &&
-        d.getMonth() === today.getMonth() &&
-        d.getDate() === today.getDate();
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === today.getTime();
     }
     if (type === 'weekly') {
       return (habit.frequency.days || []).includes(todayDay);
@@ -82,9 +89,7 @@ export default function Habits() {
       if (!habit.rawDate) return false;
       const start = new Date(habit.rawDate);
       start.setHours(0, 0, 0, 0);
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const diffDays = Math.round((now - start) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round((today - start) / (1000 * 60 * 60 * 24));
       return diffDays >= 0 && diffDays % habit.frequency.days === 0;
     }
     return true;
@@ -508,8 +513,8 @@ export default function Habits() {
           <View style={styles.sortContainer}>
             {[
               { label: 'All', value: 'all' },
-              { label: 'Done', value: 'completed' },
-              { label: 'TBD', value: 'pending' }
+              { label: 'TBD', value: 'pending' },
+              { label: 'Done', value: 'completed' }
             ].map((item) => (
               <TouchableOpacity
                 key={item.value}
@@ -531,7 +536,7 @@ export default function Habits() {
         <View style={styles.filterRow}>
           <Text style={styles.sortLabel}>Sort:</Text>
           <View style={styles.sortContainer}>
-            {['Manual', 'Newest', 'Alphabetical', 'Date/Time'].map((label) => {
+            {['Manual', 'Alphabetical', 'Date/Time', 'Newest'].map((label) => {
               const mode = label === 'Alphabetical' ? 'alphabetical' : label.toLowerCase();
               return (
                 <TouchableOpacity
