@@ -39,6 +39,8 @@ export default function Habits() {
   const [durationHours, setDurationHours] = useState("0");
   const [durationMinutes, setDurationMinutes] = useState("30");
 
+  // filtering and sorting
+
   const getFilteredAndSortedHabits = () => {
     let result = [...habits].filter(habit => {
       const matchesSearch =
@@ -358,6 +360,8 @@ export default function Habits() {
 
   // habit card
 
+  // manual reorder
+
   const moveHabit = (id, direction) => {
     setHabits(prev => {
       const index = prev.findIndex(h => h.id === id);
@@ -371,7 +375,7 @@ export default function Habits() {
 
   const renderHabit = ({ item, index }) => (
     <View style={styles.card}>
-      {sortMode === 'manual' && (
+      {sortMode === 'manual' && !searchQuery && statusFilter === 'all' && (
         <View style={styles.moveButtons}>
           <TouchableOpacity onPress={() => moveHabit(item.id, -1)}>
             <Ionicons name="chevron-up" size={20} color="#8e8e93" />
@@ -637,7 +641,7 @@ const styles = StyleSheet.create({
   placeholderEmoji: { fontSize: 70, marginBottom: 20 },
   placeholderTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
   placeholderSubtitle: { color: '#8e8e93', fontSize: 16, fontWeight: '400' },
-  card: { backgroundColor: "#143296", borderRadius: 18, paddingVertical: 8, paddingHorizontal: 22, marginBottom: 8, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: '#091642' },
+  card: { backgroundColor: "#143296", borderRadius: 18, paddingVertical: 11, paddingHorizontal: 22, marginBottom: 10, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: '#091642' },
   moveButtons: { flexDirection: 'column', justifyContent: 'center', gap: 4, paddingRight: 10 },
   dragHandle: { paddingRight: 10, justifyContent: 'center' },
   cardCategory: { color: "#0a84ff", fontSize: 12, fontWeight: "800", textTransform: "uppercase", marginBottom: 2 },
