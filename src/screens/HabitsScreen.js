@@ -1,17 +1,30 @@
 import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, FlatList, ScrollView,
-  TouchableOpacity, TextInput, Pressable, Alert,
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Pressable,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { Colours, Radius, HeaderTitle, Spacing } from "../styles/global";
 
 const GENERAL_CATEGORY = "General";
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const WEEK_DAYS = [
-  { short: 'M', value: 1 }, { short: 'T', value: 2 }, { short: 'W', value: 3 },
-  { short: 'T', value: 4 }, { short: 'F', value: 5 }, { short: 'S', value: 6 }, { short: 'S', value: 0 },
+  { short: "M", value: 1 },
+  { short: "T", value: 2 },
+  { short: "W", value: 3 },
+  { short: "T", value: 4 },
+  { short: "F", value: 5 },
+  { short: "S", value: 6 },
+  { short: "S", value: 0 },
 ];
 
 export default function Habits() {
@@ -28,7 +41,12 @@ export default function Habits() {
   const [editingId, setEditingId] = useState(null);
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(GENERAL_CATEGORY);
-  const [categories, setCategories] = useState([GENERAL_CATEGORY, "Health & Fitness", "Learning", "Productivity"]);
+  const [categories, setCategories] = useState([
+    GENERAL_CATEGORY,
+    "Health & Fitness",
+    "Learning",
+    "Productivity",
+  ]);
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [frequencyType, setFrequencyType] = useState("daily");
@@ -42,14 +60,16 @@ export default function Habits() {
   const todayString = () => new Date().toDateString();
 
   const isCompletedToday = (habitId) =>
-    completionLog.some(e => e.habitId === habitId && e.date === todayString());
+    completionLog.some(
+      (e) => e.habitId === habitId && e.date === todayString(),
+    );
 
   const toggleCompletion = (habitId) => {
     const today = todayString();
-    setCompletionLog(prev =>
-      prev.some(e => e.habitId === habitId && e.date === today)
-        ? prev.filter(e => !(e.habitId === habitId && e.date === today))
-        : [...prev, { habitId, date: today }]
+    setCompletionLog((prev) =>
+      prev.some((e) => e.habitId === habitId && e.date === today)
+        ? prev.filter((e) => !(e.habitId === habitId && e.date === today))
+        : [...prev, { habitId, date: today }],
     );
   };
 
@@ -59,22 +79,20 @@ export default function Habits() {
     if (!habit.frequency) return true;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     if (habit.rawDate) {
       const start = new Date(habit.rawDate);
       start.setHours(0, 0, 0, 0);
       if (today < start) return false;
     }
-
     const { type, days } = habit.frequency;
-    if (type === 'daily') return true;
-    if (type === 'none') {
+    if (type === "daily") return true;
+    if (type === "none") {
       const d = new Date(habit.rawDate);
       d.setHours(0, 0, 0, 0);
       return d.getTime() === today.getTime();
     }
-    if (type === 'weekly') return (days || []).includes(new Date().getDay());
-    if (type === 'interval') {
+    if (type === "weekly") return (days || []).includes(new Date().getDay());
+    if (type === "interval") {
       const start = new Date(habit.rawDate);
       start.setHours(0, 0, 0, 0);
       const diff = Math.round((today - start) / 86400000);
@@ -87,27 +105,36 @@ export default function Habits() {
 
   const getFilteredAndSortedHabits = () => {
     const q = searchQuery.toLowerCase();
-    let result = habits.filter(h => {
-      const matchesSearch = (h.description || "").toLowerCase().includes(q) ||
+    let result = habits.filter((h) => {
+      const matchesSearch =
+        (h.description || "").toLowerCase().includes(q) ||
         (h.category || "").toLowerCase().includes(q);
-      const matchesStatus = statusFilter === "all" ? true
-        : statusFilter === "completed" ? isCompletedToday(h.id) : !isCompletedToday(h.id);
-      return matchesSearch && matchesStatus && (!todayFilter || isScheduledToday(h));
+      const matchesStatus =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "completed"
+            ? isCompletedToday(h.id)
+            : !isCompletedToday(h.id);
+      return (
+        matchesSearch && matchesStatus && (!todayFilter || isScheduledToday(h))
+      );
     });
-
     if (sortMode === "alphabetical")
-      result.sort((a, b) => (a.description || "").localeCompare(b.description || ""));
+      result.sort((a, b) =>
+        (a.description || "").localeCompare(b.description || ""),
+      );
     else if (sortMode === "date/time")
       result.sort((a, b) => {
-        const dateDiff = (a.rawDate?.getTime() || 0) - (b.rawDate?.getTime() || 0);
+        const dateDiff =
+          (a.rawDate?.getTime() || 0) - (b.rawDate?.getTime() || 0);
         if (dateDiff !== 0) return dateDiff;
-        const hourDiff = (a.rawTime?.getHours() || 0) - (b.rawTime?.getHours() || 0);
+        const hourDiff =
+          (a.rawTime?.getHours() || 0) - (b.rawTime?.getHours() || 0);
         if (hourDiff !== 0) return hourDiff;
         return (a.rawTime?.getMinutes() || 0) - (b.rawTime?.getMinutes() || 0);
       });
     else if (sortMode === "newest")
       result.sort((a, b) => (b.id || "").localeCompare(a.id || ""));
-
     return result;
   };
 
@@ -116,53 +143,94 @@ export default function Habits() {
   const handleAddCustomCategory = () => {
     Alert.prompt("New Category", "Enter category name:", [
       { text: "Cancel", style: "cancel" },
-      { text: "Add", onPress: (text) => {
-        const trimmed = text?.trim();
-        if (trimmed && !categories.includes(trimmed)) {
-          setCategories([...categories, trimmed]);
-          setCategory(trimmed);
-        }
-      }}
+      {
+        text: "Add",
+        onPress: (text) => {
+          const trimmed = text?.trim();
+          if (trimmed && !categories.includes(trimmed)) {
+            setCategories([...categories, trimmed]);
+            setCategory(trimmed);
+          }
+        },
+      },
     ]);
   };
 
   const handleLongPressCategory = (cat) => {
     if (cat === GENERAL_CATEGORY) {
-      Alert.alert("Protected Category", "The General category cannot be edited or deleted.");
+      Alert.alert(
+        "Protected Category",
+        "The General category cannot be edited or deleted.",
+      );
       return;
     }
     Alert.alert(cat, "What would you like to do with this category?", [
       { text: "Cancel", style: "cancel" },
-      { text: "Rename", onPress: () =>
-        Alert.prompt("Rename Category", `Rename "${cat}" to:`, [
-          { text: "Cancel", style: "cancel" },
-          { text: "Save", onPress: (newName) => {
-            const trimmed = newName?.trim();
-            if (!trimmed) return;
-            if (categories.includes(trimmed)) {
-              Alert.alert("Already exists", "A category with that name already exists.");
-              return;
-            }
-            setCategories(prev => prev.map(c => c === cat ? trimmed : c));
-            setHabits(prev => prev.map(h => h.category === cat ? { ...h, category: trimmed } : h));
-            if (category === cat) setCategory(trimmed);
-          }}
-        ], "plain-text", cat)
+      {
+        text: "Rename",
+        onPress: () =>
+          Alert.prompt(
+            "Rename Category",
+            `Rename "${cat}" to:`,
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Save",
+                onPress: (newName) => {
+                  const trimmed = newName?.trim();
+                  if (!trimmed) return;
+                  if (categories.includes(trimmed)) {
+                    Alert.alert(
+                      "Already exists",
+                      "A category with that name already exists.",
+                    );
+                    return;
+                  }
+                  setCategories((prev) =>
+                    prev.map((c) => (c === cat ? trimmed : c)),
+                  );
+                  setHabits((prev) =>
+                    prev.map((h) =>
+                      h.category === cat ? { ...h, category: trimmed } : h,
+                    ),
+                  );
+                  if (category === cat) setCategory(trimmed);
+                },
+              },
+            ],
+            "plain-text",
+            cat,
+          ),
       },
-      { text: "Delete", style: "destructive", onPress: () => {
-        const count = habits.filter(h => h.category === cat).length;
-        const msg = count > 0
-          ? `Delete "${cat}"? The ${count} habit${count !== 1 ? 's' : ''} in this category will be moved to General.`
-          : `Delete "${cat}"?`;
-        Alert.alert("Delete Category", msg, [
-          { text: "Cancel", style: "cancel" },
-          { text: "Delete", style: "destructive", onPress: () => {
-            setCategories(prev => prev.filter(c => c !== cat));
-            setHabits(prev => prev.map(h => h.category === cat ? { ...h, category: GENERAL_CATEGORY } : h));
-            if (category === cat) setCategory(GENERAL_CATEGORY);
-          }}
-        ]);
-      }}
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          const count = habits.filter((h) => h.category === cat).length;
+          const msg =
+            count > 0
+              ? `Delete "${cat}"? The ${count} habit${count !== 1 ? "s" : ""} in this category will be moved to General.`
+              : `Delete "${cat}"?`;
+          Alert.alert("Delete Category", msg, [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: () => {
+                setCategories((prev) => prev.filter((c) => c !== cat));
+                setHabits((prev) =>
+                  prev.map((h) =>
+                    h.category === cat
+                      ? { ...h, category: GENERAL_CATEGORY }
+                      : h,
+                  ),
+                );
+                if (category === cat) setCategory(GENERAL_CATEGORY);
+              },
+            },
+          ]);
+        },
+      },
     ]);
   };
 
@@ -170,49 +238,79 @@ export default function Habits() {
 
   const saveHabit = () => {
     if (!description.trim()) {
-      Alert.alert("Missing Name", "Please enter a name for your habit before saving.", [{ text: "OK" }]);
+      Alert.alert(
+        "Missing Name",
+        "Please enter a name for your habit before saving.",
+        [{ text: "OK" }],
+      );
       return;
     }
-    if (frequencyType === 'weekly' && selectedDays.length === 0) {
-      Alert.alert("Select Days", "Please select at least one day for your weekly habit.", [{ text: "OK" }]);
+    if (frequencyType === "weekly" && selectedDays.length === 0) {
+      Alert.alert(
+        "Select Days",
+        "Please select at least one day for your weekly habit.",
+        [{ text: "OK" }],
+      );
       return;
     }
-    if (frequencyType === 'interval' && parseInt(intervalDays) < 1) {
-      Alert.alert("Invalid Interval", "Please enter a valid number of days (1 or more).", [{ text: "OK" }]);
+    if (frequencyType === "interval" && parseInt(intervalDays) < 1) {
+      Alert.alert(
+        "Invalid Interval",
+        "Please enter a valid number of days (1 or more).",
+        [{ text: "OK" }],
+      );
       return;
     }
-
     const standardizedDate = new Date(date);
     standardizedDate.setHours(0, 0, 0, 0);
-
     const habitData = {
       description,
       category,
       rawDate: standardizedDate,
       rawTime: time,
-      dateString: date.toLocaleDateString('en-GB'),
-      timeString: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      dateString: date.toLocaleDateString("en-GB"),
+      timeString: time.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       frequency: {
         type: frequencyType,
-        days: frequencyType === 'weekly' ? selectedDays
-          : frequencyType === 'interval' ? parseInt(intervalDays) : null,
+        days:
+          frequencyType === "weekly"
+            ? selectedDays
+            : frequencyType === "interval"
+              ? parseInt(intervalDays)
+              : null,
       },
       duration: {
         hours: parseInt(durationHours) || 0,
         minutes: parseInt(durationMinutes) || 0,
       },
     };
-
     if (editingId) {
-      Alert.alert("Save Changes?", "Do you want to save the changes to this habit?", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Save", onPress: () => {
-          setHabits(prev => prev.map(h => h.id === editingId ? { ...h, ...habitData } : h));
-          resetForm();
-        }}
-      ]);
+      Alert.alert(
+        "Save Changes?",
+        "Do you want to save the changes to this habit?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Save",
+            onPress: () => {
+              setHabits((prev) =>
+                prev.map((h) =>
+                  h.id === editingId ? { ...h, ...habitData } : h,
+                ),
+              );
+              resetForm();
+            },
+          },
+        ],
+      );
     } else {
-      setHabits(prev => [{ id: Date.now().toString(), ...habitData }, ...prev]);
+      setHabits((prev) => [
+        { id: Date.now().toString(), ...habitData },
+        ...prev,
+      ]);
       resetForm();
     }
   };
@@ -237,8 +335,10 @@ export default function Habits() {
     if (item.rawTime) setTime(new Date(item.rawTime));
     if (item.frequency) {
       setFrequencyType(item.frequency.type);
-      if (item.frequency.type === 'weekly') setSelectedDays(item.frequency.days);
-      if (item.frequency.type === 'interval') setIntervalDays(String(item.frequency.days));
+      if (item.frequency.type === "weekly")
+        setSelectedDays(item.frequency.days);
+      if (item.frequency.type === "interval")
+        setIntervalDays(String(item.frequency.days));
     }
     if (item.duration) {
       setDurationHours(String(item.duration.hours || 0));
@@ -250,15 +350,19 @@ export default function Habits() {
   const handleDelete = (id, name) => {
     Alert.alert("Delete Habit", `Are you sure you want to delete "${name}"?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => setHabits(prev => prev.filter(h => h.id !== id)) }
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => setHabits((prev) => prev.filter((h) => h.id !== id)),
+      },
     ]);
   };
 
   // manual reorder
 
   const moveHabit = (id, direction) => {
-    setHabits(prev => {
-      const i = prev.findIndex(h => h.id === id);
+    setHabits((prev) => {
+      const i = prev.findIndex((h) => h.id === id);
       const j = i + direction;
       if (j < 0 || j >= prev.length) return prev;
       const result = [...prev];
@@ -273,55 +377,98 @@ export default function Habits() {
     const parts = [];
     if (hours > 0) parts.push(`${hours}h`);
     if (minutes > 0) parts.push(`${minutes}m`);
-    return parts.join(' ');
+    return parts.join(" ");
   };
 
   const getFrequencyDisplay = (frequency) => {
-    if (!frequency || frequency.type === 'daily') return "Every day";
-    if (frequency.type === 'none') return "One Time";
-    if (frequency.type === 'interval')
-      return frequency.days === 1 ? "Every day" : `Every ${frequency.days} days`;
-
-    const dayName = d => d === 0 ? 'Sun' : DAY_NAMES[d - 1];
-    const sorted = [...frequency.days].sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b));
+    if (!frequency || frequency.type === "daily") return "Every day";
+    if (frequency.type === "none") return "One Time";
+    if (frequency.type === "interval")
+      return frequency.days === 1
+        ? "Every day"
+        : `Every ${frequency.days} days`;
+    const dayName = (d) => (d === 0 ? "Sun" : DAY_NAMES[d - 1]);
+    const sorted = [...frequency.days].sort(
+      (a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b),
+    );
     if (sorted.length === 7) return "Every day";
-    if (sorted.length === 5 && [1,2,3,4,5].every(d => sorted.includes(d))) return "Weekdays";
-    if (sorted.length === 2 && [6,0].every(d => sorted.includes(d))) return "Weekends";
-    const consecutive = sorted.every((d, i) => i === 0 || d === sorted[i-1] + 1);
-    if (consecutive && sorted.length > 2) return `${dayName(sorted[0])}-${dayName(sorted[sorted.length-1])}`;
-    return sorted.map(dayName).join(', ');
+    if (sorted.length === 5 && [1, 2, 3, 4, 5].every((d) => sorted.includes(d)))
+      return "Weekdays";
+    if (sorted.length === 2 && [6, 0].every((d) => sorted.includes(d)))
+      return "Weekends";
+    const consecutive = sorted.every(
+      (d, i) => i === 0 || d === sorted[i - 1] + 1,
+    );
+    if (consecutive && sorted.length > 2)
+      return `${dayName(sorted[0])}-${dayName(sorted[sorted.length - 1])}`;
+    return sorted.map(dayName).join(", ");
   };
 
   // sub-components
 
   const Stepper = ({ value, onDecrement, onIncrement }) => (
     <View style={styles.stepperContainer}>
-      <TouchableOpacity style={styles.stepperButton} onPress={onDecrement}>
-        <Ionicons name="remove" size={20} color="white" />
+      <TouchableOpacity
+        style={styles.stepperButton}
+        onPress={onDecrement}
+      >
+        <Ionicons
+          name="remove"
+          size={18}
+          color={Colours.textPrimary}
+        />
       </TouchableOpacity>
       <View style={styles.stepperValue}>
         <Text style={styles.stepperValueText}>{value}</Text>
       </View>
-      <TouchableOpacity style={styles.stepperButton} onPress={onIncrement}>
-        <Ionicons name="add" size={20} color="white" />
+      <TouchableOpacity
+        style={styles.stepperButton}
+        onPress={onIncrement}
+      >
+        <Ionicons
+          name="add"
+          size={18}
+          color={Colours.textPrimary}
+        />
       </TouchableOpacity>
     </View>
   );
 
   const DurationPicker = () => (
-    <View style={styles.durationContainer}>
-      <Text style={styles.sectionLabel}>Duration</Text>
+    <View style={styles.formFieldGroup}>
+      <Text style={styles.formFieldLabel}>Duration</Text>
       <View style={styles.durationRow}>
         {[
-          { label: 'Hours', val: durationHours, set: setDurationHours, max: 23, step: 1 },
-          { label: 'Minutes', val: durationMinutes, set: setDurationMinutes, max: 55, step: 5 },
+          {
+            label: "Hours",
+            val: durationHours,
+            set: setDurationHours,
+            max: 23,
+            step: 1,
+          },
+          {
+            label: "Minutes",
+            val: durationMinutes,
+            set: setDurationMinutes,
+            max: 55,
+            step: 5,
+          },
         ].map(({ label, val, set, max, step }) => (
-          <View key={label} style={styles.durationSection}>
+          <View
+            key={label}
+            style={styles.durationSection}
+          >
             <Text style={styles.durationLabel}>{label}</Text>
             <Stepper
               value={val || "0"}
-              onDecrement={() => { const v = parseInt(val) || 0; if (v >= step) set(String(v - step)); }}
-              onIncrement={() => { const v = parseInt(val) || 0; if (v < max) set(String(v + step)); }}
+              onDecrement={() => {
+                const v = parseInt(val) || 0;
+                if (v >= step) set(String(v - step));
+              }}
+              onIncrement={() => {
+                const v = parseInt(val) || 0;
+                if (v < max) set(String(v + step));
+              }}
             />
           </View>
         ))}
@@ -330,47 +477,79 @@ export default function Habits() {
   );
 
   const FrequencyPicker = () => (
-    <View style={styles.frequencyContainer}>
-      <Text style={styles.sectionLabel}>Repeat</Text>
-      <View style={styles.frequencyTypeRow}>
-        {['none', 'daily', 'weekly', 'interval'].map(type => (
+    <View style={styles.formFieldGroup}>
+      <Text style={styles.formFieldLabel}>Repeat</Text>
+      <View style={styles.freqTypeRow}>
+        {["none", "daily", "weekly", "interval"].map((type) => (
           <TouchableOpacity
             key={type}
-            style={[styles.freqBtn, frequencyType === type && styles.freqBtnActive]}
+            style={[
+              styles.freqBtn,
+              frequencyType === type && styles.freqBtnActive,
+            ]}
             onPress={() => setFrequencyType(type)}
           >
-            <Text style={[styles.freqBtnText, frequencyType === type && styles.freqBtnTextActive]}>
-              {type === 'interval' ? 'Every N Days' : type === 'none' ? 'One-time' : type.charAt(0).toUpperCase() + type.slice(1)}
+            <Text
+              style={[
+                styles.freqBtnText,
+                frequencyType === type && styles.freqBtnTextActive,
+              ]}
+            >
+              {type === "interval"
+                ? "Every N"
+                : type === "none"
+                  ? "One-time"
+                  : type.charAt(0).toUpperCase() + type.slice(1)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {frequencyType === 'weekly' && (
+      {frequencyType === "weekly" && (
         <View style={styles.daysRow}>
-          {WEEK_DAYS.map(day => (
+          {WEEK_DAYS.map((day) => (
             <TouchableOpacity
               key={day.value}
-              style={[styles.dayCircle, selectedDays.includes(day.value) && styles.dayCircleActive]}
-              onPress={() => setSelectedDays(prev =>
-                prev.includes(day.value)
-                  ? prev.filter(d => d !== day.value)
-                  : [...prev, day.value].sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b))
-              )}
+              style={[
+                styles.dayCircle,
+                selectedDays.includes(day.value) && styles.dayCircleActive,
+              ]}
+              onPress={() =>
+                setSelectedDays((prev) =>
+                  prev.includes(day.value)
+                    ? prev.filter((d) => d !== day.value)
+                    : [...prev, day.value].sort(
+                        (a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b),
+                      ),
+                )
+              }
             >
-              <Text style={[styles.dayText, selectedDays.includes(day.value) && styles.dayTextActive]}>{day.short}</Text>
+              <Text
+                style={[
+                  styles.dayText,
+                  selectedDays.includes(day.value) && styles.dayTextActive,
+                ]}
+              >
+                {day.short}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      {frequencyType === 'interval' && (
+      {frequencyType === "interval" && (
         <View style={styles.intervalRow}>
           <Text style={styles.intervalLabel}>Every</Text>
           <Stepper
             value={intervalDays || "1"}
-            onDecrement={() => { const v = parseInt(intervalDays) || 1; if (v > 1) setIntervalDays(String(v - 1)); }}
-            onIncrement={() => { const v = parseInt(intervalDays) || 1; if (v < 99) setIntervalDays(String(v + 1)); }}
+            onDecrement={() => {
+              const v = parseInt(intervalDays) || 1;
+              if (v > 1) setIntervalDays(String(v - 1));
+            }}
+            onIncrement={() => {
+              const v = parseInt(intervalDays) || 1;
+              if (v < 99) setIntervalDays(String(v + 1));
+            }}
           />
           <Text style={styles.intervalLabel}>days</Text>
         </View>
@@ -380,20 +559,32 @@ export default function Habits() {
 
   // habit card
 
-  const canReorder = sortMode === 'manual' && !searchQuery && statusFilter === 'all' && !todayFilter;
+  const canReorder =
+    sortMode === "manual" &&
+    !searchQuery &&
+    statusFilter === "all" &&
+    !todayFilter;
 
   const renderHabit = ({ item }) => {
     const done = isCompletedToday(item.id);
-    const durationText = item.duration ? getDurationDisplay(item.duration) : '';
+    const durationText = item.duration ? getDurationDisplay(item.duration) : "";
     return (
       <View style={styles.card}>
         {canReorder && (
           <View style={styles.moveButtons}>
             <TouchableOpacity onPress={() => moveHabit(item.id, -1)}>
-              <Ionicons name="chevron-up" size={20} color="#8e8e93" />
+              <Ionicons
+                name="chevron-up"
+                size={20}
+                color={Colours.textDisabled}
+              />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => moveHabit(item.id, 1)}>
-              <Ionicons name="chevron-down" size={20} color="#8e8e93" />
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={Colours.textDisabled}
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -401,19 +592,27 @@ export default function Habits() {
           <Text style={styles.cardCategory}>{item.category}</Text>
           <Text style={styles.cardDesc}>{item.description}</Text>
           <Text style={styles.cardMeta}>
-            {item.dateString} • {item.timeString}{durationText ? ` • ${durationText}` : ''}
+            {item.dateString} • {item.timeString}
+            {durationText ? ` • ${durationText}` : ""}
           </Text>
-          <Text style={styles.cardFrequency}>🔄 {getFrequencyDisplay(item.frequency)}</Text>
+          <Text style={styles.cardFrequency}>
+            🔄 {getFrequencyDisplay(item.frequency)}
+          </Text>
         </View>
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity style={done ? styles.compBtn : styles.tbdBtn} onPress={() => toggleCompletion(item.id)}>
-            <Text style={styles.btnTextSmall}>{done ? "Done" : "TBD"}</Text>
+        <View style={styles.cardActions}>
+          <TouchableOpacity
+            style={done ? styles.doneBtn : styles.tbdBtn}
+            onPress={() => toggleCompletion(item.id)}
+          >
+            <Text style={styles.cardBtnText}>{done ? "Done" : "TBD"}</Text>
           </TouchableOpacity>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={styles.cardEditRow}>
             <TouchableOpacity onPress={() => openEditForm(item)}>
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDelete(item.id, item.description)}>
+            <TouchableOpacity
+              onPress={() => handleDelete(item.id, item.description)}
+            >
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -422,21 +621,26 @@ export default function Habits() {
     );
   };
 
-  // render
-
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>My Habits</Text>
+    <SafeAreaView
+      style={styles.container}
+      edges={["bottom", "left", "right"]}
+    >
+      <View style={styles.screenHeader}>
+        <Text style={styles.screenTitle}>Habits</Text>
       </View>
 
-      {/* search */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBarWrapper}>
-          <Ionicons name="search" size={20} color="#6b7280" style={styles.searchIcon} />
+        <View style={styles.searchBar}>
+          <Ionicons
+            name="search"
+            size={18}
+            color={Colours.textDisabled}
+            style={{ marginRight: 8 }}
+          />
           <TextInput
             placeholder="Search by name or category"
-            placeholderTextColor="#6b7280"
+            placeholderTextColor={Colours.textDisabled}
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -445,138 +649,231 @@ export default function Habits() {
         </View>
       </View>
 
-      {/* filters */}
       <View style={styles.filterWrapper}>
         <View style={styles.filterRow}>
-          <Text style={styles.filterLabel}>Status:</Text>
-          <View style={styles.filterContainer}>
-            {[['All', 'all'], ['TBD', 'pending'], ['Done', 'completed']].map(([label, value]) => (
+          <Text style={styles.filterRowLabel}>Status</Text>
+          <View style={styles.filterChips}>
+            {[
+              ["All", "all"],
+              ["TBD", "pending"],
+              ["Done", "completed"],
+            ].map(([label, value]) => (
               <TouchableOpacity
                 key={value}
                 onPress={() => setStatusFilter(value)}
-                style={[styles.filterBtn, statusFilter === value && styles.filterBtnActive]}
+                style={[
+                  styles.chip,
+                  statusFilter === value && styles.chipActive,
+                ]}
               >
-                <Text style={[styles.filterBtnText, statusFilter === value && styles.filterBtnTextActive]}>{label}</Text>
+                <Text
+                  style={[
+                    styles.chipText,
+                    statusFilter === value && styles.chipTextActive,
+                  ]}
+                >
+                  {label}
+                </Text>
               </TouchableOpacity>
             ))}
-            <View style={styles.divider} />
+            <View style={styles.chipDivider} />
             <TouchableOpacity
-              onPress={() => setTodayFilter(p => !p)}
-              style={[styles.filterBtn, todayFilter && styles.filterBtnToday]}
+              onPress={() => setTodayFilter((p) => !p)}
+              style={[styles.chip, todayFilter && styles.chipToday]}
             >
-              <Text style={[styles.filterBtnText, todayFilter && styles.filterBtnTextActive]}>Today's Habits</Text>
+              <Text
+                style={[styles.chipText, todayFilter && styles.chipTextActive]}
+              >
+                Today
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.filterRow}>
-          <Text style={styles.filterLabel}>Sort:</Text>
-          <View style={styles.filterContainer}>
-            {[['Manual', 'manual'], ['Alphabetical', 'alphabetical'], ['Date/Time', 'date/time'], ['Newest', 'newest']].map(([label, mode]) => (
+          <Text style={styles.filterRowLabel}>Sort</Text>
+          <View style={styles.filterChips}>
+            {[
+              ["Manual", "manual"],
+              ["A–Z", "alphabetical"],
+              ["Date", "date/time"],
+              ["Newest", "newest"],
+            ].map(([label, mode]) => (
               <TouchableOpacity
                 key={mode}
                 onPress={() => setSortMode(mode)}
-                style={[styles.filterBtn, sortMode === mode && styles.filterBtnActive]}
+                style={[styles.chip, sortMode === mode && styles.chipActive]}
               >
-                <Text style={[styles.filterBtnText, sortMode === mode && styles.filterBtnTextActive]}>{label}</Text>
+                <Text
+                  style={[
+                    styles.chipText,
+                    sortMode === mode && styles.chipTextActive,
+                  ]}
+                >
+                  {label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
       </View>
 
-      {/* habit list */}
       <FlatList
         data={getFilteredAndSortedHabits()}
         renderItem={renderHabit}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={() => (
-          <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderEmoji}>{habits.length === 0 ? "🌱" : "🔭"}</Text>
-            <Text style={styles.placeholderTitle}>{habits.length === 0 ? "No habits yet" : "No habits found"}</Text>
-            <Text style={styles.placeholderSubtitle}>
-              {habits.length === 0 ? "Press the plus button to get started" : "Try a different keyword or status"}
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyEmoji}>
+              {habits.length === 0 ? "🌱" : "🔭"}
+            </Text>
+            <Text style={styles.emptyTitle}>
+              {habits.length === 0 ? "No habits yet" : "No habits found"}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {habits.length === 0
+                ? "Tap + to get started"
+                : "Try a different search or filter"}
             </Text>
           </View>
         )}
       />
 
-      {/* form overlay */}
       {showForm && (
         <>
           <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
-            onPress={() => { setShowForm(false); setEditingId(null); }}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: Colours.backdropColor },
+            ]}
+            onPress={() => {
+              setShowForm(false);
+              setEditingId(null);
+            }}
           />
-          <View style={styles.formPosition}>
-            <View style={styles.compactForm}>
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <Text style={styles.formTitle}>{editingId ? "Edit Habit" : "New Habit"}</Text>
+          <View style={styles.sheetPosition}>
+            <View style={styles.sheet}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>
+                {editingId ? "Edit Habit" : "New Habit"}
+              </Text>
 
-                <TextInput
-                  placeholder="Habit Name"
-                  placeholderTextColor="#6b7280"
-                  style={styles.input}
-                  value={description}
-                  onChangeText={setDescription}
-                  autoFocus
-                />
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Name */}
+                <View style={styles.formFieldGroup}>
+                  <Text style={styles.formFieldLabel}>Name</Text>
+                  <TextInput
+                    placeholder="Habit name"
+                    placeholderTextColor={Colours.textDisabled}
+                    style={styles.input}
+                    value={description}
+                    onChangeText={setDescription}
+                    autoFocus
+                  />
+                </View>
 
-                {/* category */}
-                <Text style={styles.sectionLabel}>Category<Text style={styles.sectionLabel}> - Long press to edit or delete</Text></Text>
-                <View style={styles.categoryRow}>
-                  {categories.map(cat => (
+                {/* Category */}
+                <View style={styles.formFieldGroup}>
+                  <Text style={styles.formFieldLabel}>
+                    Category{" "}
+                    <Text style={styles.formFieldLabelHint}>
+                      Long press to edit or delete
+                    </Text>
+                  </Text>
+                  <View style={styles.categoryRow}>
+                    {categories.map((cat) => (
+                      <TouchableOpacity
+                        key={cat}
+                        style={[
+                          styles.catChip,
+                          category === cat && styles.catChipActive,
+                          cat === GENERAL_CATEGORY && styles.catChipGeneral,
+                        ]}
+                        onPress={() => setCategory(cat)}
+                        onLongPress={() => handleLongPressCategory(cat)}
+                        delayLongPress={400}
+                      >
+                        <Text
+                          style={[
+                            styles.catChipText,
+                            category === cat && styles.catChipTextActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {cat}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                     <TouchableOpacity
-                      key={cat}
-                      style={[category === cat ? styles.catBtnActive : styles.catBtn, cat === GENERAL_CATEGORY && styles.catBtnGeneral]}
-                      onPress={() => setCategory(cat)}
-                      onLongPress={() => handleLongPressCategory(cat)}
-                      delayLongPress={400}
+                      style={styles.catChipAdd}
+                      onPress={handleAddCustomCategory}
                     >
-                      <Text style={[styles.catText, category === cat && styles.catTextActive]} numberOfLines={1}>
-                        {cat === GENERAL_CATEGORY ? "General" : cat}
-                      </Text>
+                      <Text style={styles.catChipText}>New +</Text>
                     </TouchableOpacity>
-                  ))}
-                  <TouchableOpacity style={styles.catBtnAdd} onPress={handleAddCustomCategory}>
-                    <Text style={styles.catText}>New +</Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
 
-                {/* date and time */}
-                <Text style={styles.sectionLabel}>Start Date &amp; Time</Text>
-                <View style={styles.dateTimeRow}>
-                  {[
-                    { label: 'Date', mode: 'date', value: date, onChange: setDate },
-                    { label: 'Time', mode: 'time', value: time, onChange: setTime },
-                  ].map(({ label, mode, value, onChange }) => (
-                    <View key={label} style={styles.pickerField}>
-                      <Text style={styles.fieldLabel}>{label}</Text>
-                      <DateTimePicker
-                        value={value}
-                        mode={mode}
-                        display="compact"
-                        themeVariant="dark"
-                        textColor="white"
-                        onChange={(e, v) => v && onChange(v)}
-                      />
-                    </View>
-                  ))}
+                {/* Date & Time */}
+                <View style={styles.formFieldGroup}>
+                  <Text style={styles.formFieldLabel}>
+                    Start Date &amp; Time
+                  </Text>
+                  <View style={styles.dateTimeRow}>
+                    {[
+                      {
+                        label: "Date",
+                        mode: "date",
+                        value: date,
+                        onChange: setDate,
+                      },
+                      {
+                        label: "Time",
+                        mode: "time",
+                        value: time,
+                        onChange: setTime,
+                      },
+                    ].map(({ label, mode, value, onChange }) => (
+                      <View
+                        key={label}
+                        style={styles.dateTimeField}
+                      >
+                        <Text style={styles.dateTimeFieldLabel}>{label}</Text>
+                        <DateTimePicker
+                          value={value}
+                          mode={mode}
+                          display="compact"
+                          themeVariant="dark"
+                          textColor={Colours.textPrimary}
+                          onChange={(e, v) => v && onChange(v)}
+                        />
+                      </View>
+                    ))}
+                  </View>
                 </View>
 
-                {/* duration */}
+                {/* Duration */}
                 <DurationPicker />
 
-                {/* frequency */}
+                {/* Frequency */}
                 <FrequencyPicker />
 
-                <View style={styles.formButtonRow}>
-                  <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
-                    <Text style={styles.btnTextLarge}>Cancel</Text>
+                {/* Footer buttons */}
+                <View style={styles.sheetFooter}>
+                  <TouchableOpacity
+                    style={[styles.sheetBtn, styles.sheetBtnCancel]}
+                    onPress={resetForm}
+                  >
+                    <Text style={styles.sheetBtnCancelText}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.saveBtn} onPress={saveHabit}>
-                    <Text style={styles.btnTextLarge}>Save Habit</Text>
+                  <TouchableOpacity
+                    style={[styles.sheetBtn, styles.sheetBtnSave]}
+                    onPress={saveHabit}
+                  >
+                    <Text style={styles.sheetBtnSaveText}>Save Habit</Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
@@ -585,13 +882,17 @@ export default function Habits() {
         </>
       )}
 
-      {/* fab */}
       {!showForm && (
         <TouchableOpacity
+          activeOpacity={0.85}
           style={styles.fab}
-          onPress={() => { setDate(new Date()); setTime(new Date()); setShowForm(true); }}
+          onPress={() => {
+            setDate(new Date());
+            setTime(new Date());
+            setShowForm(true);
+          }}
         >
-          <Ionicons name="add" size={30} color="white" />
+          <Text style={styles.fabText}>+</Text>
         </TouchableOpacity>
       )}
     </SafeAreaView>
@@ -599,100 +900,483 @@ export default function Habits() {
 }
 
 const styles = StyleSheet.create({
-  // layout
-  container: { flex: 1, backgroundColor: "#000" },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
-  headerText: { color: "white", fontSize: 28, fontWeight: "bold" },
-  fab: { position: 'absolute', bottom: 30, right: 25, width: 56, height: 56, borderRadius: 28, backgroundColor: '#0a84ff', justifyContent: 'center', alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: Colours.bgPrimary,
+  },
 
-  // search
-  searchContainer: { paddingHorizontal: 20, marginBottom: 15 },
-  searchBarWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: "#1c1c1e", borderRadius: 12, borderWidth: 1, borderColor: '#2c2c2e', paddingHorizontal: 12 },
-  searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, color: "white", paddingVertical: 12, fontSize: 16 },
+  screenHeader: {
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
+    paddingTop: Spacing.screenPaddingTop,
+    paddingBottom: 20,
+  },
+  screenTitle: {
+    ...HeaderTitle.title,
+  },
 
-  // filters
-  filterWrapper: { paddingHorizontal: 20, marginBottom: 15, gap: 12 },
-  filterRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  filterLabel: { color: '#8e8e93', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', width: 50 },
-  filterContainer: { flexDirection: 'row', gap: 5, flexWrap: 'wrap' },
-  filterBtn: { paddingVertical: 6, paddingHorizontal: 8, borderRadius: 12, backgroundColor: '#1c1c1e' },
-  filterBtnActive: { backgroundColor: '#0a84ff' },
-  filterBtnToday: { backgroundColor: '#34c759' },
-  filterBtnText: { color: '#8e8e93', fontSize: 11, fontWeight: '600' },
-  filterBtnTextActive: { color: 'white' },
-  divider: { width: 1, height: 20, backgroundColor: '#3a3a3c', alignSelf: 'center' },
+  searchContainer: {
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
+    marginBottom: 14,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colours.bgCardDark,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    paddingHorizontal: 12,
+  },
+  searchInput: {
+    flex: 1,
+    color: Colours.textPrimary,
+    paddingVertical: 11,
+    fontSize: 14,
+  },
 
-  // list
-  listContent: { paddingHorizontal: 20, paddingTop: 5, paddingBottom: 20 },
-  placeholderContainer: { marginTop: 60, alignItems: 'center' },
-  placeholderEmoji: { fontSize: 70, marginBottom: 20 },
-  placeholderTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
-  placeholderSubtitle: { color: '#8e8e93', fontSize: 16 },
+  filterWrapper: {
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
+    marginBottom: 16,
+    gap: 10,
+  },
+  filterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  filterRowLabel: {
+    color: Colours.textPrimary,
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    width: 52,
+  },
+  filterChips: {
+    flexDirection: "row",
+    gap: 6,
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: Radius.md,
+    backgroundColor: Colours.bgCardDark,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+  },
+  chipActive: {
+    backgroundColor: Colours.brandBlueDark,
+    borderColor: Colours.brandBlue,
+  },
+  chipToday: {
+    backgroundColor: Colours.green,
+    borderColor: Colours.green,
+  },
+  chipText: {
+    color: Colours.textDisabled,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  chipTextActive: {
+    color: Colours.textPrimary,
+  },
+  chipDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: Colours.borderMid,
+    alignSelf: "center",
+  },
 
-  // card
-  card: { backgroundColor: "#143296", borderRadius: 18, paddingVertical: 11, paddingHorizontal: 22, marginBottom: 10, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: '#091642' },
-  moveButtons: { flexDirection: 'column', justifyContent: 'center', gap: 4, paddingRight: 10 },
-  cardCategory: { color: "#0a84ff", fontSize: 12, fontWeight: "800", textTransform: "uppercase", marginBottom: 2 },
-  cardDesc: { color: "white", fontSize: 22, fontWeight: "700" },
-  cardMeta: { color: "#8e8e93", fontSize: 14, marginTop: 2 },
-  cardFrequency: { color: '#0a84ff', fontSize: 12, marginTop: 4, fontWeight: '500' },
-  buttonGroup: { alignItems: 'center', justifyContent: 'center', gap: 8 },
-  compBtn: { backgroundColor: "#34c759", paddingHorizontal: 12, height: 36, borderRadius: 18, justifyContent: "center" },
-  tbdBtn: { backgroundColor: "#3a3a3c", paddingHorizontal: 12, height: 36, borderRadius: 18, justifyContent: "center" },
-  btnTextSmall: { color: "white", fontSize: 15, fontWeight: "700" },
-  editBtnText: { color: "#0a84ff", fontSize: 13, fontWeight: "600" },
-  deleteBtnText: { color: "#ff453a", fontSize: 13, fontWeight: "600" },
+  listContent: {
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
+    paddingTop: 4,
+    paddingBottom: 100,
+  },
+  emptyState: {
+    marginTop: 60,
+    alignItems: "center",
+    gap: 8,
+  },
+  emptyEmoji: { fontSize: 60, marginBottom: 8 },
+  emptyTitle: {
+    color: Colours.textPrimary,
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  emptySubtitle: {
+    color: Colours.textDisabled,
+    fontSize: 14,
+  },
 
-  // form
-  formPosition: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-  compactForm: { backgroundColor: "#1c1c1e", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 15, paddingBottom: 40, borderTopWidth: 1, borderColor: "#2c2c2e" },
-  formTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
-  input: { backgroundColor: "#2c2c2e", color: "white", padding: 12, borderRadius: 10, fontSize: 16, marginBottom: 15 },
-  sectionLabel: { color: '#8e8e93', fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase' },
-  formButtonRow: { flexDirection: 'row', gap: 10 },
-  cancelBtn: { flex: 1, backgroundColor: "#3a3a3c", padding: 14, borderRadius: 12, alignItems: "center" },
-  saveBtn: { flex: 1, backgroundColor: "#34c759", padding: 14, borderRadius: 12, alignItems: "center" },
-  btnTextLarge: { color: "white", fontSize: 16, fontWeight: "700" },
+  card: {
+    backgroundColor: Colours.bgCard,
+    borderRadius: Radius.xl,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colours.borderSubtle,
+  },
+  moveButtons: {
+    flexDirection: "column",
+    justifyContent: "center",
+    gap: 4,
+    paddingRight: 10,
+  },
+  cardCategory: {
+    color: Colours.brandBlue,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 3,
+  },
+  cardDesc: {
+    color: Colours.textPrimary,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  cardMeta: {
+    color: Colours.textDisabled,
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  cardFrequency: {
+    color: Colours.textMuted,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  cardActions: {
+    alignItems: "center",
+    gap: 8,
+    marginLeft: 10,
+  },
+  doneBtn: {
+    backgroundColor: Colours.green,
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: Radius.lg,
+    justifyContent: "center",
+    minWidth: 64,
+    alignItems: "center",
+  },
+  tbdBtn: {
+    backgroundColor: Colours.bgCardDark,
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: Radius.lg,
+    justifyContent: "center",
+    minWidth: 64,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+  },
+  cardBtnText: {
+    color: Colours.textPrimary,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  cardEditRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  editBtnText: {
+    color: Colours.brandBlue,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  deleteBtnText: {
+    color: Colours.red,
+    fontSize: 13,
+    fontWeight: "600",
+  },
 
-  // category
-  categoryRow: { flexDirection: "row", gap: 6, marginBottom: 15, flexWrap: 'wrap' },
-  catBtn: { backgroundColor: "#2c2c2e", paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8 },
-  catBtnActive: { backgroundColor: "#0a84ff", paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8 },
-  catBtnGeneral: { borderWidth: 1, borderColor: '#3a3a3c' },
-  catBtnAdd: { backgroundColor: "#3a3a3c", paddingVertical: 7, paddingHorizontal: 9, borderRadius: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: '#8e8e93', flexShrink: 0 },
-  catText: { color: '#8e8e93', fontSize: 12, fontWeight: '600' },
-  catTextActive: { color: 'white', fontSize: 12, fontWeight: '600' },
+  sheetPosition: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  sheet: {
+    backgroundColor: Colours.bgSecondary,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
+    paddingTop: 10,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderColor: Colours.borderMid,
+    maxHeight: "100%",
+  },
+  sheetHandle: {
+    alignSelf: "center",
+    width: 46,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colours.brandBlueDim,
+    marginBottom: 12,
+  },
+  sheetTitle: {
+    color: Colours.textPrimary,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
 
-  // date/time
-  dateTimeRow: { flexDirection: "row", gap: 8, marginBottom: 15 },
-  pickerField: { flex: 1, backgroundColor: "#2c2c2e", paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  fieldLabel: { color: "#8e8e93", fontSize: 11, fontWeight: "600" },
+  formFieldGroup: {
+    marginBottom: 16,
+    gap: 8,
+  },
+  formFieldLabel: {
+    color: Colours.textSecondary,
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.2,
+  },
+  formFieldLabelHint: {
+    color: Colours.textDisabled,
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  input: {
+    borderRadius: Radius.md,
+    backgroundColor: Colours.bgCardDark,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    color: Colours.textPrimary,
+    fontSize: 14,
+  },
 
-  // frequency
-  frequencyContainer: { marginBottom: 15 },
-  frequencyTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
-  freqBtn: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, backgroundColor: '#2c2c2e', alignItems: 'center' },
-  freqBtnActive: { backgroundColor: '#0a84ff' },
-  freqBtnText: { color: '#8e8e93', fontSize: 13, fontWeight: '600' },
-  freqBtnTextActive: { color: 'white', fontSize: 13, fontWeight: '600' },
-  daysRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
-  dayCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2c2c2e', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#3a3a3c' },
-  dayCircleActive: { backgroundColor: '#0a84ff', borderColor: '#0a84ff' },
-  dayText: { color: '#8e8e93', fontSize: 14, fontWeight: '700' },
-  dayTextActive: { color: 'white' },
-  intervalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 5 },
-  intervalLabel: { color: '#8e8e93', fontSize: 13, fontWeight: '600' },
+  categoryRow: {
+    flexDirection: "row",
+    gap: 6,
+    flexWrap: "wrap",
+  },
+  catChip: {
+    backgroundColor: Colours.bgCardDark,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+  },
+  catChipActive: {
+    backgroundColor: Colours.brandBlueDark,
+    borderColor: Colours.brandBlue,
+  },
+  catChipGeneral: {
+    borderColor: Colours.borderMid,
+  },
+  catChipAdd: {
+    backgroundColor: Colours.bgCardDark,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: Radius.sm,
+    borderStyle: "dashed",
+    borderWidth: 1,
+    borderColor: Colours.textDisabled,
+  },
+  catChipText: {
+    color: Colours.textDisabled,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  catChipTextActive: {
+    color: Colours.textPrimary,
+  },
 
-  // duration
-  durationContainer: { marginBottom: 15 },
-  durationRow: { flexDirection: 'row', gap: 10 },
-  durationSection: { flex: 1, alignItems: 'center' },
-  durationLabel: { color: '#8e8e93', fontSize: 11, fontWeight: '600', marginBottom: 6, textAlign: 'center' },
+  dateTimeRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  dateTimeField: {
+    flex: 1,
+    backgroundColor: Colours.bgCardDark,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dateTimeFieldLabel: {
+    color: Colours.textDisabled,
+    fontSize: 11,
+    fontWeight: "600",
+  },
 
-  // stepper
-  stepperContainer: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: '#2c2c2e', borderRadius: 12, padding: 4 },
-  stepperButton: { width: 36, height: 36, backgroundColor: '#3a3a3c', borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  stepperValue: { width: 40, alignItems: 'center' },
-  stepperValueText: { color: 'white', fontSize: 18, fontWeight: '700' },
+  durationRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  durationSection: {
+    flex: 1,
+    alignItems: "center",
+    gap: 6,
+  },
+  durationLabel: {
+    color: Colours.textDisabled,
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  freqTypeRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  freqBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: Radius.sm,
+    backgroundColor: Colours.bgCardDark,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+  },
+  freqBtnActive: {
+    backgroundColor: Colours.brandBlueDark,
+    borderColor: Colours.brandBlue,
+  },
+  freqBtnText: {
+    color: Colours.textDisabled,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  freqBtnTextActive: {
+    color: Colours.textPrimary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  daysRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  dayCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colours.bgCardDark,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+  },
+  dayCircleActive: {
+    backgroundColor: Colours.brandBlueDark,
+    borderColor: Colours.brandBlue,
+  },
+  dayText: {
+    color: Colours.textDisabled,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  dayTextActive: {
+    color: Colours.textPrimary,
+  },
+  intervalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    marginTop: 10,
+  },
+  intervalLabel: {
+    color: Colours.textDisabled,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  stepperContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
+    backgroundColor: Colours.bgCardDark,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    padding: 3,
+  },
+  stepperButton: {
+    width: 34,
+    height: 34,
+    backgroundColor: Colours.bgCard,
+    borderRadius: Radius.sm,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  stepperValue: {
+    width: 38,
+    alignItems: "center",
+  },
+  stepperValueText: {
+    color: Colours.textPrimary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  sheetFooter: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 20,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: Colours.borderMid,
+  },
+  sheetBtn: {
+    flex: 1,
+    borderRadius: Radius.md,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetBtnCancel: {
+    backgroundColor: Colours.bgCardDark,
+  },
+  sheetBtnSave: {
+    backgroundColor: Colours.green,
+    borderWidth: 1,
+    borderColor: Colours.green,
+  },
+  sheetBtnCancelText: {
+    color: Colours.textSecondary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  sheetBtnSaveText: {
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 95,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: Colours.brandBlue,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colours.bgPrimary,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  fabText: {
+    color: Colours.bgPrimary,
+    fontSize: 30,
+    fontWeight: "500",
+    lineHeight: 31,
+  },
 });
