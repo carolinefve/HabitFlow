@@ -854,9 +854,8 @@ const styles = StyleSheet.create({
 
   sectionLabel: {
     fontSize: 12,
-    fontWeight: "700",
-
-    color: Colours.textSecondary,
+    fontWeight: "800",
+    color: Colours.textPrimary,
     textTransform: "uppercase",
     marginBottom: 10,
     marginTop: 4,
@@ -1043,9 +1042,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fieldLabel: {
-    color: Colours.textSecondary,
-    fontSize: 13,
-    fontWeight: "600",
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "800",
   },
   input: {
     borderRadius: Radius.md,
@@ -1225,9 +1224,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colours.bgCardDark,
   },
   saveButton: {
-    backgroundColor: Colours.brandBlueDark,
+    backgroundColor: Colours.green,
     borderWidth: 1,
-    borderColor: Colours.brandBlue,
+    borderColor: Colours.green,
   },
   deleteButton: {
     backgroundColor: Colours.danger,
