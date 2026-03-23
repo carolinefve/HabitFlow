@@ -36,7 +36,6 @@ const PanelWidth = ScreenWidth * 0.82;
 const WeekLabels = generateWeekLabels();
 
 // Components
-
 function StatPill({ label, value, colour }) {
   return (
     <View style={[styles.statPill, { backgroundColor: colour }]}>
@@ -419,7 +418,6 @@ function SettingsPanel({
 }
 
 // Screen
-
 export default function ProgressScreen() {
   const [activeChart, setActiveChart] = useState("weekly");
   const [panelVisible, setPanelVisible] = useState(false);
