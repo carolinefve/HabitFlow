@@ -37,9 +37,9 @@ const WeekLabels = generateWeekLabels();
 
 // Components
 
-function StatPill({ label, value, accent }) {
+function StatPill({ label, value, colour }) {
   return (
-    <View style={[styles.statPill, { backgroundColor: accent }]}>
+    <View style={[styles.statPill, { backgroundColor: colour }]}>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -458,17 +458,17 @@ export default function ProgressScreen() {
             <StatPill
               label="Current Streak"
               value="21"
-              accent="#7EB8F7"
+              colour="#7EB8F7"
             />
             <StatPill
               label="Best Streak"
               value="34"
-              accent="#F9C784"
+              colour="#F9C784"
             />
             <StatPill
               label="This Week"
               value="88%"
-              accent="#A78BFA"
+              colour="#A78BFA"
             />
           </View>
 
