@@ -91,3 +91,12 @@ export const FrequencyOptions = [
     desc: "One reminder per day, no matter how many habits are due",
   },
 ];
+
+export const DefaultSettings = {
+  notifications: true,
+  dailyReminder: false,
+  weeklyReport: true,
+  darkMode: true,
+  frequency: "normal",
+  autoBackup: true,
+};
