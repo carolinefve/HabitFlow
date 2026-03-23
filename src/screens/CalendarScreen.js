@@ -42,21 +42,21 @@ export default function Calendar () {
       id: 0,
       title: "Test 1",
       description: "This is some sample text",
-      date: new Date(2026, 2, 20, 23, 59), // 2026, March 20th 11:59:00 PM
+      date: new Date(2026, 2, 19, 2, 0), // 2026, March 19th 2:00:00 AM
       condition: false,
     },
     {
       id: 1,
       title: "Test 2",
       description: "This is some sample text",
-      date: new Date(2026, 2, 23, 23, 59),
+      date: new Date(2026, 2, 20, 2, 0),
       condition: false,
     },
     {
       id: 2,
       title: "Test 3",
       description: "This is some sample text",
-      date: new Date(2026, 2, 19, 23, 59),
+      date: new Date(2026, 2, 23, 2, 0),
       condition: false,
     },
   ]);

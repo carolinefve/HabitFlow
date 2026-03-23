@@ -31,7 +31,7 @@ import {
 
 const SLOT_HEIGHT = 88;
 const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;
-const BASE_DAY_DATE = new Date(2026, 1, 23);
+const BASE_DAY_DATE = new Date(2026, 2, 19);
 
 const colorPalette = ["#3A7BFF", "#8D6E63", "#E53935", "#8E24AA", "#43A047"];
 
@@ -64,44 +64,34 @@ const timelineHours = [
 
 const initialTasks = [
   {
-    id: "ad-1",
-    title: "Study",
-    dateLabel: "2026-02-23",
-    allDay: true,
-    notes: "Read notes",
+    id: "deadline-1",
+    title: "Test 1",
+    dateLabel: "2026-03-19",
+    allDay: false,
+    notes: "Due: March 19, 2026 at 2:00 AM",
     color: "#E53935",
-    startTime: "",
-    endTime: "",
+    startTime: "1:00 AM",
+    endTime: "2:00 AM",
   },
   {
-    id: "ad-2",
-    title: "Clean Room",
-    dateLabel: "2026-02-23",
-    allDay: true,
-    notes: "Tidy up desk",
+    id: "deadline-2",
+    title: "Test 2",
+    dateLabel: "2026-03-20",
+    allDay: false,
+    notes: "Due: March 20, 2026 at 2:00 AM",
     color: "#8E24AA",
-    startTime: "",
-    endTime: "",
+    startTime: "1:00 AM",
+    endTime: "2:00 AM",
   },
   {
-    id: "t-1",
-    title: "Client Call",
-    dateLabel: "2026-02-23",
+    id: "deadline-3",
+    title: "Test 3",
+    dateLabel: "2026-03-23",
     allDay: false,
-    startTime: "1:30 AM",
-    endTime: "2:20 AM",
-    notes: "Quarterly planning",
+    startTime: "1:00 AM",
+    endTime: "2:00 AM",
+    notes: "Due: March 23, 2026 at 2:00 AM",
     color: "#43A047",
-  },
-  {
-    id: "t-2",
-    title: "Lunch",
-    dateLabel: "2026-02-23",
-    allDay: false,
-    startTime: "3:15 AM",
-    endTime: "4:00 AM",
-    notes: "Cafe downstairs",
-    color: "#3A7BFF",
   },
 ];
 
