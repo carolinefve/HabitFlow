@@ -118,9 +118,16 @@ export function validateTaskForm(form) {
     return { isValid: false, error: "End Time must use h:mm AM/PM." };
   }
   if ((hasStart && !hasEnd) || (!hasStart && hasEnd)) {
-    return { isValid: false, error: "Start Time and End Time must both be set." };
+    return {
+      isValid: false,
+      error: "Start Time and End Time must both be set.",
+    };
   }
-  if (normalizedStart && normalizedEnd && timeToMinutes(normalizedEnd) <= timeToMinutes(normalizedStart)) {
+  if (
+    normalizedStart &&
+    normalizedEnd &&
+    timeToMinutes(normalizedEnd) <= timeToMinutes(normalizedStart)
+  ) {
     return { isValid: false, error: "End Time must be after Start Time." };
   }
 
@@ -146,7 +153,9 @@ export function buildTaskPayload(form) {
 
 export function upsertTask(tasks, taskPayload, mode) {
   if (mode === "edit") {
-    return tasks.map((task) => (task.id === taskPayload.id ? taskPayload : task));
+    return tasks.map((task) =>
+      task.id === taskPayload.id ? taskPayload : task,
+    );
   }
   return [...tasks, taskPayload];
 }
@@ -183,7 +192,7 @@ export function computeBlockHeight(task) {
 }
 
 export function computeBlockTop(task, fallbackIndex) {
-  const baseline = timeToMinutes("12:00 AM");
+  const baseline = timeToMinutes("5:00 AM");
   const start = timeToMinutes(task.startTime);
   if (start === null) return 14 + fallbackIndex * 92;
 
@@ -195,7 +204,11 @@ function buildTemplateName(dateLabel, count, existingCount) {
   return `Template ${existingCount + 1} - ${dateLabel} - ${count} task${count === 1 ? "" : "s"}`;
 }
 
-export function createTemplateFromTasks(tasks, selectedDateLabel, existingCount) {
+export function createTemplateFromTasks(
+  tasks,
+  selectedDateLabel,
+  existingCount,
+) {
   const templateTasks = tasks.map((task) => ({
     ...task,
     id: createId("template-task"),
@@ -203,7 +216,11 @@ export function createTemplateFromTasks(tasks, selectedDateLabel, existingCount)
 
   return {
     id: createId("template"),
-    name: buildTemplateName(selectedDateLabel, templateTasks.length, existingCount),
+    name: buildTemplateName(
+      selectedDateLabel,
+      templateTasks.length,
+      existingCount,
+    ),
     tasks: templateTasks,
   };
 }
