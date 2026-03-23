@@ -12,9 +12,9 @@
     "android": {
       "edgeToEdgeEnabled": true
     },
-    "plugins": [
-      "expo-sqlite",
-      "@react-native-community/datetimepicker"
-    ]
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-sqlite", "@react-native-community/datetimepicker"]
   }
 }
