@@ -5,7 +5,7 @@ export const MotivationalQuotes = [
   },
   {
     quote: "3 weeks of consistency 🌿",
-    sub: "Take it easy this weekend you've earned it!",
+    sub: "Take it easy this weekend!",
   },
 ];
 

@@ -6,6 +6,7 @@ import AgendaScreen from "../screens/AgendaScreen";
 import HabitsScreen from "../screens/HabitsScreen";
 import CalendarScreen from "../screens/CalendarScreen";
 import ProgressScreen from "../screens/ProgressScreen";
+import SettingsScreen from "../screens/SettingsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +22,7 @@ export default function AppNavigator() {
               Habits: focused ? "checkmark-circle" : "checkmark-circle-outline",
               Calendar: focused ? "calendar" : "calendar-outline",
               Progress: focused ? "bar-chart" : "bar-chart-outline",
+              Settings: focused ? "settings" : "settings-outline",
             };
             return (
               <Ionicons
@@ -52,6 +54,10 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Progress"
           component={ProgressScreen}
+        />
+        <Tab.Screen
+          name="Settings"
+          component={SettingsScreen}
         />
       </Tab.Navigator>
     </NavigationContainer>

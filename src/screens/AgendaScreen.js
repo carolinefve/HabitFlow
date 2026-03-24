@@ -29,18 +29,20 @@ import {
   deleteTaskById,
 } from "../services/agendaService";
 
+import {
+  Colours,
+  Radius,
+  Spacing,
+  TaskColourPalette,
+  HeaderTitle,
+} from "../styles/global";
+
 const SLOT_HEIGHT = 88;
-const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;
 const BASE_DAY_DATE = new Date(2026, 1, 23);
 
-const colorPalette = ["#3A7BFF", "#8D6E63", "#E53935", "#8E24AA", "#43A047"];
+const colorPalette = TaskColourPalette;
 
 const timelineHours = [
-  "12 AM",
-  "1 AM",
-  "2 AM",
-  "3 AM",
-  "4 AM",
   "5 AM",
   "6 AM",
   "7 AM",
@@ -88,18 +90,18 @@ const initialTasks = [
     title: "Client Call",
     dateLabel: "2026-02-23",
     allDay: false,
-    startTime: "1:30 AM",
-    endTime: "2:20 AM",
+    startTime: "6:30 AM",
+    endTime: "7:20 AM",
     notes: "Quarterly planning",
     color: "#43A047",
   },
   {
     id: "t-2",
-    title: "Lunch",
+    title: "Breakfast",
     dateLabel: "2026-02-23",
     allDay: false,
-    startTime: "3:15 AM",
-    endTime: "4:00 AM",
+    startTime: "8:15 AM",
+    endTime: "9:00 AM",
     notes: "Cafe downstairs",
     color: "#3A7BFF",
   },
@@ -112,7 +114,6 @@ function formatDate(date) {
     day: "numeric",
   });
 }
-
 
 function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
   const [hourValue, setHourValue] = useState("");
@@ -128,34 +129,58 @@ function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
     }
   }, [value, visible]);
 
-  const normalized = normalizeNumericTimeInput(hourValue, minuteValue, periodValue);
+  const normalized = normalizeNumericTimeInput(
+    hourValue,
+    minuteValue,
+    periodValue,
+  );
   const hasValue = hourValue.trim().length > 0 || minuteValue.trim().length > 0;
-  const error = hasValue && !normalized ? "Enter hour 1-12 and minute 00-59." : "";
+  const error =
+    hasValue && !normalized ? "Enter hour 1-12 and minute 00-59." : "";
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.modalBackdrop}>
         <View style={[styles.dialog, styles.templateDialog]}>
           <Text style={styles.dialogTitle}>{fieldLabel}</Text>
-          <Text style={styles.dialogHint}>Enter hour and minute, then choose AM or PM.</Text>
+          <Text style={styles.dialogHint}>
+            Enter hour and minute, then choose AM or PM.
+          </Text>
 
           <View style={styles.timeInputRow}>
             <TextInput
               value={hourValue}
-              onChangeText={(text) => setHourValue(text.replace(/\D/g, "").slice(0, 2))}
+              onChangeText={(text) =>
+                setHourValue(text.replace(/\D/g, "").slice(0, 2))
+              }
               placeholder="2"
-              placeholderTextColor="#7E7E88"
+              placeholderTextColor={Colours.textDisabled}
               keyboardType="number-pad"
-              style={[styles.input, styles.timeSplitInput, styles.timeInputField]}
+              style={[
+                styles.input,
+                styles.timeSplitInput,
+                styles.timeInputField,
+              ]}
             />
             <Text style={styles.timeColon}>:</Text>
             <TextInput
               value={minuteValue}
-              onChangeText={(text) => setMinuteValue(text.replace(/\D/g, "").slice(0, 2))}
+              onChangeText={(text) =>
+                setMinuteValue(text.replace(/\D/g, "").slice(0, 2))
+              }
               placeholder="30"
-              placeholderTextColor="#7E7E88"
+              placeholderTextColor={Colours.textDisabled}
               keyboardType="number-pad"
-              style={[styles.input, styles.timeSplitInput, styles.timeInputField]}
+              style={[
+                styles.input,
+                styles.timeSplitInput,
+                styles.timeInputField,
+              ]}
             />
           </View>
 
@@ -173,7 +198,9 @@ function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
                 <Text
                   style={[
                     styles.periodButtonText,
-                    periodValue === period ? styles.periodButtonTextActive : null,
+                    periodValue === period
+                      ? styles.periodButtonTextActive
+                      : null,
                   ]}
                 >
                   {period}
@@ -212,11 +239,18 @@ function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
 
 function TemplatePickerModal({ visible, templates, onClose, onSelect }) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.modalBackdrop}>
         <View style={[styles.dialog, styles.templateDialog]}>
           <Text style={styles.dialogTitle}>Use Template</Text>
-          <Text style={styles.dialogHint}>Import all tasks into the selected day.</Text>
+          <Text style={styles.dialogHint}>
+            Import all tasks into the selected day.
+          </Text>
 
           <ScrollView
             style={styles.templateList}
@@ -233,14 +267,17 @@ function TemplatePickerModal({ visible, templates, onClose, onSelect }) {
                 >
                   <Text style={styles.templateListTitle}>{template.name}</Text>
                   <Text style={styles.templateListMeta}>
-                    {template.tasks.length} task{template.tasks.length === 1 ? "" : "s"}
+                    {template.tasks.length} task
+                    {template.tasks.length === 1 ? "" : "s"}
                   </Text>
                 </TouchableOpacity>
               ))
             ) : (
               <View style={styles.emptyStateCard}>
                 <Text style={styles.emptyStateTitle}>No templates saved</Text>
-                <Text style={styles.emptyStateSubtitle}>Save a day first, then reuse it here.</Text>
+                <Text style={styles.emptyStateSubtitle}>
+                  Save a day first, then reuse it here.
+                </Text>
               </View>
             )}
           </ScrollView>
@@ -273,7 +310,12 @@ function AgendaTaskModal({
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={onClose}
+      >
         <View style={styles.modalBackdrop}>
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
@@ -301,9 +343,11 @@ function AgendaTaskModal({
                 <Text style={styles.fieldLabel}>Title</Text>
                 <TextInput
                   value={form.title}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, title: text }))}
+                  onChangeText={(text) =>
+                    setForm((prev) => ({ ...prev, title: text }))
+                  }
                   placeholder="Task title"
-                  placeholderTextColor="#7E7E88"
+                  placeholderTextColor={Colours.textDisabled}
                   style={styles.input}
                 />
               </View>
@@ -312,7 +356,9 @@ function AgendaTaskModal({
                 <Text style={styles.fieldLabel}>Date</Text>
                 <View style={styles.dateRow}>
                   <View style={styles.dateBadge}>
-                    <Text style={styles.dateBadgeText}>{formatDate(form.date)}</Text>
+                    <Text style={styles.dateBadgeText}>
+                      {formatDate(form.date)}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -330,11 +376,18 @@ function AgendaTaskModal({
                         endTime: value ? "" : prev.endTime,
                       }))
                     }
-                    trackColor={{ false: "#2C2C34", true: "#3A7BFF" }}
-                    thumbColor="#FFFFFF"
+                    trackColor={{
+                      false: Colours.bgCardDark,
+                      true: Colours.brandBlueDark,
+                    }}
+                    thumbColor={
+                      form.allDay ? Colours.brandBlue : Colours.brandBlueDim
+                    }
                   />
                 </View>
-                {form.allDay ? <Text style={styles.allDayHint}>All Day</Text> : null}
+                {form.allDay ? (
+                  <Text style={styles.allDayHint}>All Day</Text>
+                ) : null}
               </View>
 
               {!form.allDay ? (
@@ -343,11 +396,19 @@ function AgendaTaskModal({
                     <Text style={styles.fieldLabel}>Start Time</Text>
                     <View style={styles.timeFieldRow}>
                       <TouchableOpacity
-                        style={form.startTime ? styles.timeTag : styles.addTimeButton}
+                        style={
+                          form.startTime ? styles.timeTag : styles.addTimeButton
+                        }
                         onPress={() => setTimeField("startTime")}
                         activeOpacity={0.8}
                       >
-                        <Text style={form.startTime ? styles.timeTagText : styles.addTimeText}>
+                        <Text
+                          style={
+                            form.startTime
+                              ? styles.timeTagText
+                              : styles.addTimeText
+                          }
+                        >
                           {form.startTime || "Add time"}
                         </Text>
                       </TouchableOpacity>
@@ -358,11 +419,19 @@ function AgendaTaskModal({
                     <Text style={styles.fieldLabel}>End Time</Text>
                     <View style={styles.timeFieldRow}>
                       <TouchableOpacity
-                        style={form.endTime ? styles.timeTag : styles.addTimeButton}
+                        style={
+                          form.endTime ? styles.timeTag : styles.addTimeButton
+                        }
                         onPress={() => setTimeField("endTime")}
                         activeOpacity={0.8}
                       >
-                        <Text style={form.endTime ? styles.timeTagText : styles.addTimeText}>
+                        <Text
+                          style={
+                            form.endTime
+                              ? styles.timeTagText
+                              : styles.addTimeText
+                          }
+                        >
                           {form.endTime || "Add time"}
                         </Text>
                       </TouchableOpacity>
@@ -375,9 +444,11 @@ function AgendaTaskModal({
                 <Text style={styles.fieldLabel}>Notes</Text>
                 <TextInput
                   value={form.notes}
-                  onChangeText={(text) => setForm((prev) => ({ ...prev, notes: text }))}
+                  onChangeText={(text) =>
+                    setForm((prev) => ({ ...prev, notes: text }))
+                  }
                   placeholder="Optional notes"
-                  placeholderTextColor="#7E7E88"
+                  placeholderTextColor={Colours.textDisabled}
                   style={[styles.input, styles.notesInput]}
                   multiline
                   textAlignVertical="top"
@@ -401,11 +472,16 @@ function AgendaTaskModal({
                 </View>
               </View>
 
-              {validation.error ? <Text style={styles.errorText}>{validation.error}</Text> : null}
+              {validation.error ? (
+                <Text style={styles.errorText}>{validation.error}</Text>
+              ) : null}
             </ScrollView>
 
             <View style={styles.footerButtons}>
-              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={onClose}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={onClose}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
@@ -422,7 +498,10 @@ function AgendaTaskModal({
               </TouchableOpacity>
 
               {mode === "edit" ? (
-                <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDelete}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={onDelete}
+                >
                   <Text style={styles.deleteText}>Delete</Text>
                 </TouchableOpacity>
               ) : null}
@@ -452,21 +531,23 @@ export default function AgendaScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [templatePickerVisible, setTemplatePickerVisible] = useState(false);
   const [mode, setMode] = useState("create");
-  const [form, setForm] = useState(createEmptyForm(formatDateLabel(BASE_DAY_DATE)));
+  const [form, setForm] = useState(
+    createEmptyForm(formatDateLabel(BASE_DAY_DATE)),
+  );
   const [selectedDate, setSelectedDate] = useState(BASE_DAY_DATE);
 
   const selectedDateLabel = formatDateLabel(selectedDate);
   const tasksForSelectedDate = useMemo(
     () => filterTasksByDate(tasks, selectedDateLabel),
-    [selectedDateLabel, tasks]
+    [selectedDateLabel, tasks],
   );
   const allDayTasks = useMemo(
     () => tasksForSelectedDate.filter((task) => task.allDay),
-    [tasksForSelectedDate]
+    [tasksForSelectedDate],
   );
   const timelineTasks = useMemo(
     () => sortTimelineTasks(tasksForSelectedDate),
-    [tasksForSelectedDate]
+    [tasksForSelectedDate],
   );
 
   const openCreateModal = () => {
@@ -501,10 +582,8 @@ export default function AgendaScreen() {
   const handleSaveTask = () => {
     const validation = validateTaskForm(form);
     if (!validation.isValid) return;
-
     const taskPayload = buildTaskPayload(form);
     setTasks((prev) => upsertTask(prev, taskPayload, mode));
-
     closeModal();
   };
 
@@ -516,11 +595,21 @@ export default function AgendaScreen() {
 
   const handleSaveTemplate = () => {
     if (!tasksForSelectedDate.length) return;
-    setTemplates((prev) => [...prev, createTemplateFromTasks(tasksForSelectedDate, selectedDateLabel, prev.length)]);
+    setTemplates((prev) => [
+      ...prev,
+      createTemplateFromTasks(
+        tasksForSelectedDate,
+        selectedDateLabel,
+        prev.length,
+      ),
+    ]);
   };
 
   const handleUseTemplate = (template) => {
-    setTasks((prev) => [...prev, ...applyTemplateToDate(template, selectedDateLabel)]);
+    setTasks((prev) => [
+      ...prev,
+      ...applyTemplateToDate(template, selectedDateLabel),
+    ]);
     setTemplatePickerVisible(false);
     setModalVisible(false);
   };
@@ -532,47 +621,51 @@ export default function AgendaScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View style={styles.headerTopRow}>
-            <Text style={styles.headerLabel}>All Day</Text>
-            <View style={styles.headerActions}>
-              <View style={styles.headerDateRow}>
-                <TouchableOpacity
-                  onPress={() => setSelectedDate((prev) => addDays(prev, -1))}
-                  style={styles.headerArrowButton}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.headerArrowText}>{"<"}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.headerDateTapZone} activeOpacity={0.7} onPress={() => {}}>
-                  <Text style={styles.headerDate}>{formatDate(selectedDate)}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setSelectedDate((prev) => addDays(prev, 1))}
-                  style={styles.headerArrowButton}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.headerArrowText}>{">"}</Text>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.saveTemplateButton,
-                  !tasksForSelectedDate.length ? styles.disabledButton : null,
-                ]}
-                activeOpacity={0.82}
-                onPress={handleSaveTemplate}
-                disabled={!tasksForSelectedDate.length}
-              >
-                <Text style={styles.saveTemplateText}>Save Template</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+        <View style={styles.screenHeader}>
+          <Text style={styles.screenTitle}>Agenda</Text>
         </View>
 
+        <View style={styles.dateNavRow}>
+          <TouchableOpacity
+            onPress={() => setSelectedDate((prev) => addDays(prev, -1))}
+            style={styles.arrowButton}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.arrowText}>{"<"}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.dateBadgePill}
+            activeOpacity={0.7}
+            onPress={() => {}}
+          >
+            <Text style={styles.dateBadgePillText}>
+              {formatDate(selectedDate)}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setSelectedDate((prev) => addDays(prev, 1))}
+            style={styles.arrowButton}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.arrowText}>{">"}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.saveTemplateButton,
+              !tasksForSelectedDate.length ? styles.disabledButton : null,
+            ]}
+            activeOpacity={0.82}
+            onPress={handleSaveTemplate}
+            disabled={!tasksForSelectedDate.length}
+          >
+            <Text style={styles.saveTemplateText}>Save Template</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionLabel}>All Day</Text>
         <View style={styles.allDaySection}>
           {allDayTasks.length ? (
             allDayTasks.map((task) => (
@@ -583,7 +676,9 @@ export default function AgendaScreen() {
                 style={[styles.allDayCard, { backgroundColor: task.color }]}
               >
                 <Text style={styles.allDayTitle}>{task.title}</Text>
-                <Text style={styles.allDaySubtitle}>{task.notes || task.dateLabel}</Text>
+                <Text style={styles.allDaySubtitle}>
+                  {task.notes || task.dateLabel}
+                </Text>
               </TouchableOpacity>
             ))
           ) : (
@@ -594,10 +689,14 @@ export default function AgendaScreen() {
           )}
         </View>
 
+        <Text style={styles.sectionLabel}>Schedule</Text>
         <View style={styles.timelineSection}>
           <View style={styles.timeColumn}>
             {timelineHours.map((hour) => (
-              <View key={hour} style={styles.timeRow}>
+              <View
+                key={hour}
+                style={styles.timeRow}
+              >
                 <Text style={styles.timeText}>{hour}</Text>
               </View>
             ))}
@@ -605,7 +704,10 @@ export default function AgendaScreen() {
 
           <View style={styles.blocksColumn}>
             {timelineHours.map((hour) => (
-              <View key={`line-${hour}`} style={styles.hourLine} />
+              <View
+                key={`line-${hour}`}
+                style={styles.hourLine}
+              />
             ))}
 
             <View style={styles.blocksLayer}>
@@ -634,7 +736,9 @@ export default function AgendaScreen() {
               ) : (
                 <View style={styles.timelineEmptyState}>
                   <Text style={styles.emptyStateTitle}>No scheduled tasks</Text>
-                  <Text style={styles.emptyStateSubtitle}>Tap + to add one</Text>
+                  <Text style={styles.emptyStateSubtitle}>
+                    Tap + to add one
+                  </Text>
                 </View>
               )}
             </View>
@@ -642,7 +746,11 @@ export default function AgendaScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity activeOpacity={0.85} style={styles.fab} onPress={openCreateModal}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.fab}
+        onPress={openCreateModal}
+      >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
 
@@ -670,117 +778,105 @@ export default function AgendaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0E0E10",
+    backgroundColor: Colours.bgPrimary,
   },
-
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 62,
-    paddingHorizontal: 16,
+    paddingTop: Spacing.screenPaddingTop,
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
     paddingBottom: 120,
   },
 
-  header: {
-    marginBottom: 14,
-  },
-  headerTopRow: {
+  screenHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 8,
-  },
-  headerLabel: {
-    color: "#FFFFFF",
-    fontSize: 30,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-    flexShrink: 1,
-  },
-  headerDate: {
-    marginTop: 4,
-    color: "#A8A8B3",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  headerDateTapZone: {
-    minHeight: 34,
-    minWidth: 132,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#30303A",
-    backgroundColor: "#1E1E25",
+    marginBottom: 20,
   },
-  headerDateRow: {
-    width: 208,
+  screenTitle: {
+    ...HeaderTitle.title,
+  },
+
+  dateNavRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: 8,
+    marginBottom: 20,
   },
-  headerActions: {
-    alignItems: "center",
-    gap: 8,
-  },
-  headerArrowButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  arrowButton: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: Colours.bgCardDark,
     borderWidth: 1,
-    borderColor: "#30303A",
-    backgroundColor: "#1A1A21",
+    borderColor: Colours.borderMid,
   },
-  headerArrowText: {
-    color: "#D3D3DB",
+  arrowText: {
+    color: Colours.textSecondary,
     fontSize: 13,
     fontWeight: "700",
   },
+  dateBadgePill: {
+    flex: 1,
+    minHeight: 36,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colours.brandBlueDim,
+    backgroundColor: Colours.bgCard,
+  },
+  dateBadgePillText: {
+    color: Colours.textPrimary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
   saveTemplateButton: {
-    width: 208,
-    minHeight: 31,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#3A7BFF",
-    backgroundColor: "rgba(58,123,255,0.14)",
-    shadowColor: "#000000",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    borderColor: Colours.brandBlue,
+    backgroundColor: Colours.bgCard,
   },
   saveTemplateText: {
-    color: "#9BC0FF",
+    color: Colours.brandBlue,
     fontSize: 12,
     fontWeight: "700",
-    letterSpacing: 0.2,
+  },
+
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: Colours.textPrimary,
+    textTransform: "uppercase",
+    marginBottom: 10,
+    marginTop: 4,
   },
 
   allDaySection: {
-    marginBottom: 20,
+    marginBottom: 24,
     gap: 10,
   },
   allDayCard: {
-    borderRadius: 14,
+    borderRadius: Radius.xl,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    shadowColor: "#000000",
-    shadowOpacity: 0.25,
+    shadowColor: Colours.bgPrimary,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
   },
   allDayTitle: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 16,
     fontWeight: "700",
   },
@@ -804,23 +900,22 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   timeText: {
-    color: "#8E8E99",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colours.brandBlue,
   },
-
   blocksColumn: {
     flex: 1,
     minHeight: SLOT_HEIGHT * timelineHours.length,
     borderLeftWidth: 1,
-    borderLeftColor: "#2A2A2E",
+    borderLeftColor: Colours.borderMid,
     paddingLeft: 12,
     position: "relative",
   },
   hourLine: {
     height: SLOT_HEIGHT,
     borderBottomWidth: 1,
-    borderBottomColor: "#222228",
+    borderBottomColor: Colours.borderMid,
   },
   blocksLayer: {
     position: "absolute",
@@ -833,18 +928,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 4,
-    borderRadius: 14,
+    borderRadius: Radius.lg,
     paddingHorizontal: 12,
     paddingVertical: 10,
     justifyContent: "space-between",
-    shadowColor: "#000000",
-    shadowOpacity: 0.24,
+    shadowColor: Colours.bgPrimary,
+    shadowOpacity: 0.3,
     shadowRadius: 7,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
   },
   eventTitle: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 14,
     fontWeight: "700",
   },
@@ -862,17 +957,17 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colours.brandBlue,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOpacity: 0.3,
+    shadowColor: Colours.bgPrimary,
+    shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },
   fabText: {
-    color: "#111114",
+    color: Colours.bgPrimary,
     fontSize: 30,
     fontWeight: "500",
     lineHeight: 31,
@@ -880,29 +975,29 @@ const styles = StyleSheet.create({
 
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.62)",
+    backgroundColor: Colours.backdropCard,
     justifyContent: "flex-end",
   },
   sheet: {
     maxHeight: "89%",
-    backgroundColor: "#141418",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: Colours.bgSecondary,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 14,
     borderTopWidth: 1,
-    borderColor: "#2A2A33",
+    borderColor: Colours.borderMid,
   },
   dialog: {
     marginHorizontal: 16,
     marginBottom: 32,
-    borderRadius: 24,
-    backgroundColor: "#141418",
+    borderRadius: Radius.xxl,
+    backgroundColor: Colours.bgSecondary,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderWidth: 1,
-    borderColor: "#2A2A33",
+    borderColor: Colours.borderMid,
   },
   templateDialog: {
     maxHeight: "72%",
@@ -911,14 +1006,14 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
   dialogTitle: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 18,
     fontWeight: "700",
   },
   dialogHint: {
     marginTop: 6,
     marginBottom: 14,
-    color: "#9CA0AD",
+    color: Colours.textSecondary,
     fontSize: 13,
   },
   sheetHandle: {
@@ -926,11 +1021,11 @@ const styles = StyleSheet.create({
     width: 46,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#494952",
+    backgroundColor: Colours.brandBlueDim,
     marginBottom: 12,
   },
   sheetTitle: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 12,
@@ -947,19 +1042,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fieldLabel: {
-    color: "#D8D8E0",
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.2,
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "800",
   },
   input: {
-    borderRadius: 12,
-    backgroundColor: "#1D1D24",
+    borderRadius: Radius.md,
+    backgroundColor: Colours.bgCardDark,
     borderWidth: 1,
-    borderColor: "#2D2D36",
+    borderColor: Colours.borderMid,
     paddingHorizontal: 12,
     paddingVertical: 11,
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 14,
   },
   notesInput: {
@@ -979,7 +1073,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   timeColon: {
-    color: "#D8D8E0",
+    color: Colours.textSecondary,
     fontSize: 22,
     fontWeight: "700",
     marginBottom: 8,
@@ -992,24 +1086,24 @@ const styles = StyleSheet.create({
   periodButton: {
     flex: 1,
     minHeight: 40,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: "#2D2D36",
-    backgroundColor: "#1D1D24",
+    borderColor: Colours.borderMid,
+    backgroundColor: Colours.bgCardDark,
     alignItems: "center",
     justifyContent: "center",
   },
   periodButtonActive: {
-    borderColor: "#3A7BFF",
-    backgroundColor: "rgba(58,123,255,0.16)",
+    borderColor: Colours.brandBlue,
+    backgroundColor: Colours.brandBlueDark,
   },
   periodButtonText: {
-    color: "#A8A8B3",
+    color: Colours.textSecondary,
     fontSize: 13,
     fontWeight: "700",
   },
   periodButtonTextActive: {
-    color: "#DCE8FF",
+    color: Colours.textPrimary,
   },
   dateRow: {
     alignItems: "flex-start",
@@ -1018,72 +1112,69 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 10,
-    backgroundColor: "#1E1E25",
+    borderRadius: Radius.sm,
+    backgroundColor: Colours.bgCard,
     borderWidth: 1,
-    borderColor: "#30303A",
+    borderColor: Colours.brandBlueDim,
     minHeight: 36,
   },
   dateBadgeText: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 13,
     fontWeight: "600",
   },
   templateButton: {
     minHeight: 40,
-    borderRadius: 11,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: "#3A7BFF",
-    backgroundColor: "rgba(58,123,255,0.14)",
+    borderColor: Colours.brandBlue,
+    backgroundColor: Colours.bgCard,
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   templateButtonText: {
-    color: "#9BC0FF",
+    color: Colours.brandBlue,
     fontSize: 13,
     fontWeight: "700",
-    letterSpacing: 0.2,
   },
-
   switchRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   allDayHint: {
-    color: "#9CA0AD",
+    color: Colours.textMuted,
     fontSize: 12,
   },
-
   timeFieldRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
   addTimeButton: {
-    borderRadius: 10,
+    borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: "#3A7BFF",
-    backgroundColor: "rgba(58,123,255,0.12)",
+    borderColor: Colours.brandBlue,
+    backgroundColor: Colours.bgCard,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   addTimeText: {
-    color: "#90B2FF",
+    color: Colours.brandBlue,
     fontSize: 13,
     fontWeight: "600",
   },
   timeTag: {
-    borderRadius: 10,
-    backgroundColor: "#22222B",
+    borderRadius: Radius.sm,
+    backgroundColor: Colours.bgCardDark,
     borderWidth: 1,
-    borderColor: "#383845",
+    borderColor: Colours.brandBlueDim,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   timeTagText: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 13,
     fontWeight: "600",
   },
@@ -1099,12 +1190,12 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   colorSwatchActive: {
-    borderColor: "#FFFFFF",
+    borderColor: Colours.textPrimary,
   },
 
   footerButtons: {
     borderTopWidth: 1,
-    borderTopColor: "#2A2A33",
+    borderTopColor: Colours.borderMid,
     marginTop: 6,
     paddingTop: 12,
     flexDirection: "row",
@@ -1117,50 +1208,53 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
   },
   smallActionButton: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     minHeight: 42,
     alignItems: "center",
     justifyContent: "center",
   },
   cancelButton: {
-    backgroundColor: "#24242D",
+    backgroundColor: Colours.bgCardDark,
   },
   saveButton: {
-    backgroundColor: "#3A7BFF",
+    backgroundColor: Colours.green,
+    borderWidth: 1,
+    borderColor: Colours.green,
   },
   deleteButton: {
-    backgroundColor: "#C62828",
+    backgroundColor: Colours.danger,
   },
   disabledButton: {
     opacity: 0.45,
   },
   cancelText: {
-    color: "#D3D3DD",
+    color: Colours.textSecondary,
     fontSize: 14,
     fontWeight: "700",
   },
   saveText: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 14,
     fontWeight: "700",
   },
   deleteText: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 14,
     fontWeight: "700",
   },
   errorText: {
-    color: "#FF8A80",
+    color: Colours.dangerLight,
     fontSize: 12,
     fontWeight: "600",
   },
+
   templateList: {
     minHeight: 220,
     maxHeight: 360,
@@ -1171,51 +1265,52 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   templateListItem: {
-    borderRadius: 14,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: "#2D2D36",
-    backgroundColor: "#1D1D24",
+    borderColor: Colours.brandBlueDim,
+    backgroundColor: Colours.bgCardDark,
     paddingHorizontal: 14,
     paddingVertical: 14,
     minHeight: 64,
   },
   templateListTitle: {
-    color: "#FFFFFF",
+    color: Colours.textPrimary,
     fontSize: 15,
     fontWeight: "700",
   },
   templateListMeta: {
     marginTop: 4,
-    color: "#A8A8B3",
+    color: Colours.textMuted,
     fontSize: 12,
     fontWeight: "500",
   },
+
   emptyStateCard: {
-    borderRadius: 14,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: "#2D2D36",
-    backgroundColor: "#17171D",
+    borderColor: Colours.borderMid,
+    backgroundColor: Colours.bgCardDark,
     paddingHorizontal: 14,
     paddingVertical: 14,
   },
   emptyStateTitle: {
-    color: "#F1F1F4",
+    color: Colours.textPrimary,
     fontSize: 14,
     fontWeight: "700",
   },
   emptyStateSubtitle: {
     marginTop: 4,
-    color: "#9696A2",
+    color: Colours.textSecondary,
     fontSize: 12,
     fontWeight: "500",
   },
   timelineEmptyState: {
     marginTop: 18,
     marginRight: 4,
-    borderRadius: 14,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: "#2D2D36",
-    backgroundColor: "#17171D",
+    borderColor: Colours.borderMid,
+    backgroundColor: Colours.bgCardDark,
     paddingHorizontal: 14,
     paddingVertical: 14,
   },
