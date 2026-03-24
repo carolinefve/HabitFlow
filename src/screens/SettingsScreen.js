@@ -139,7 +139,7 @@ export default function SettingsScreen() {
 
         {/* Profile */}
         <View style={styles.profileCard}>
-          <Text style={styles.profileName}>Name</Text>
+          <Text style={styles.profileName}>Alex Stone</Text>
           <Text style={styles.profileSince}>Member since March 2025</Text>
         </View>
 
@@ -148,13 +148,13 @@ export default function SettingsScreen() {
         <View style={styles.settingsGroup}>
           <SettingRow
             label="Push Notifications"
-            sub="Reminders for your habits"
+            sub="Reminders for your tasks and habits"
             value={settings.notifications}
             onToggle={() => toggleSetting("notifications")}
           />
           <SettingRow
-            label="Daily Reminder"
-            sub="Morning nudge at 8:00 AM"
+            label="Deadlines Reminder"
+            sub="Reminders for your deadlines"
             value={settings.dailyReminder}
             onToggle={() => toggleSetting("dailyReminder")}
           />

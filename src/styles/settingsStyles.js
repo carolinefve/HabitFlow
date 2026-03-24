@@ -26,7 +26,7 @@ export default StyleSheet.create({
     borderColor: Colours.borderSubtle,
   },
   profileName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     color: Colours.textPrimary,
     marginBottom: 3,
