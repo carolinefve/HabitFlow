@@ -259,11 +259,12 @@ function InlineTimeEditor({ visible, fieldLabel, value, onClose, onSave }) {
   };
   const beforeVisibleRange =
     normalized && toMinutes(normalized) !== null && toMinutes(normalized) < 300;
-  const error = hasValue && !normalized
-    ? "Enter hour 1-12 and minute 00-59."
-    : beforeVisibleRange
-      ? `${fieldLabel} must be 5:00 AM or later.`
-      : "";
+  const error =
+    hasValue && !normalized
+      ? "Enter hour 1-12 and minute 00-59."
+      : beforeVisibleRange
+        ? `${fieldLabel} must be 5:00 AM or later.`
+        : "";
 
   return (
     <View style={styles.inlineTimeEditor}>
@@ -281,11 +282,7 @@ function InlineTimeEditor({ visible, fieldLabel, value, onClose, onSave }) {
           placeholder=""
           placeholderTextColor={Colours.textDisabled}
           keyboardType="number-pad"
-          style={[
-            styles.input,
-            styles.timeSplitInput,
-            styles.timeInputField,
-          ]}
+          style={[styles.input, styles.timeSplitInput, styles.timeInputField]}
         />
         <Text style={styles.timeColon}>:</Text>
         <TextInput
@@ -296,11 +293,7 @@ function InlineTimeEditor({ visible, fieldLabel, value, onClose, onSave }) {
           placeholder=""
           placeholderTextColor={Colours.textDisabled}
           keyboardType="number-pad"
-          style={[
-            styles.input,
-            styles.timeSplitInput,
-            styles.timeInputField,
-          ]}
+          style={[styles.input, styles.timeSplitInput, styles.timeInputField]}
         />
       </View>
 
@@ -419,7 +412,9 @@ function AgendaTaskModal({
                     ))
                   ) : (
                     <View style={styles.emptyStateCard}>
-                      <Text style={styles.emptyStateTitle}>No templates saved</Text>
+                      <Text style={styles.emptyStateTitle}>
+                        No templates saved
+                      </Text>
                       <Text style={styles.emptyStateSubtitle}>
                         Save a day first, then reuse it here.
                       </Text>
@@ -436,162 +431,172 @@ function AgendaTaskModal({
                         activeOpacity={0.8}
                         onPress={onOpenTemplatePicker}
                       >
-                        <Text style={styles.templateButtonText}>Use Template</Text>
+                        <Text style={styles.templateButtonText}>
+                          Use Template
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   ) : null}
 
                   <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Title</Text>
-                <TextInput
-                  value={form.title}
-                  onChangeText={(text) =>
-                    setForm((prev) => ({ ...prev, title: text }))
-                  }
-                  placeholder="Task title"
-                  placeholderTextColor={Colours.textDisabled}
-                  style={styles.input}
-                />
+                    <Text style={styles.fieldLabel}>Title</Text>
+                    <TextInput
+                      value={form.title}
+                      onChangeText={(text) =>
+                        setForm((prev) => ({ ...prev, title: text }))
+                      }
+                      placeholder="Task title"
+                      placeholderTextColor={Colours.textDisabled}
+                      style={styles.input}
+                    />
                   </View>
 
                   <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Date</Text>
-                <View style={styles.dateRow}>
-                  <View style={styles.dateBadge}>
-                    <Text style={styles.dateBadgeText}>
-                      {formatDate(form.date)}
-                    </Text>
-                  </View>
-                </View>
+                    <Text style={styles.fieldLabel}>Date</Text>
+                    <View style={styles.dateRow}>
+                      <View style={styles.dateBadge}>
+                        <Text style={styles.dateBadgeText}>
+                          {formatDate(form.date)}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
 
                   <View style={styles.fieldGroup}>
-                <View style={styles.switchRow}>
-                  <Text style={styles.fieldLabel}>All Day</Text>
-                  <Switch
-                    value={form.allDay}
-                    onValueChange={(value) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        allDay: value,
-                        startTime: value ? "" : prev.startTime,
-                        endTime: value ? "" : prev.endTime,
-                      }))
-                    }
-                    trackColor={{
-                      false: Colours.bgCardDark,
-                      true: Colours.brandBlueDark,
-                    }}
-                    thumbColor={
-                      form.allDay ? Colours.brandBlue : Colours.brandBlueDim
-                    }
-                  />
-                </View>
-                {form.allDay ? (
-                  <Text style={styles.allDayHint}>All Day</Text>
-                ) : null}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.fieldLabel}>All Day</Text>
+                      <Switch
+                        value={form.allDay}
+                        onValueChange={(value) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            allDay: value,
+                            startTime: value ? "" : prev.startTime,
+                            endTime: value ? "" : prev.endTime,
+                          }))
+                        }
+                        trackColor={{
+                          false: Colours.bgCardDark,
+                          true: Colours.brandBlueDark,
+                        }}
+                        thumbColor={
+                          form.allDay ? Colours.brandBlue : Colours.brandBlueDim
+                        }
+                      />
+                    </View>
+                    {form.allDay ? (
+                      <Text style={styles.allDayHint}>All Day</Text>
+                    ) : null}
                   </View>
 
                   {!form.allDay ? (
                     <>
-                  <View style={styles.fieldGroup}>
-                    <Text style={styles.fieldLabel}>Start Time</Text>
-                    <View style={styles.timeFieldRow}>
-                      <TouchableOpacity
-                        style={
-                          form.startTime ? styles.timeTag : styles.addTimeButton
-                        }
-                        onPress={() => setTimeField("startTime")}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          style={
-                            form.startTime
-                              ? styles.timeTagText
-                              : styles.addTimeText
-                          }
-                        >
-                          {form.startTime || "Add time"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    <InlineTimeEditor
-                      visible={timeField === "startTime"}
-                      fieldLabel="Start Time"
-                      value={form.startTime}
-                      onClose={() => setTimeField("")}
-                      onSave={(value) => {
-                        setForm((prev) => ({ ...prev, startTime: value }));
-                        setTimeField("");
-                      }}
-                    />
-                  </View>
+                      <View style={styles.fieldGroup}>
+                        <Text style={styles.fieldLabel}>Start Time</Text>
+                        <View style={styles.timeFieldRow}>
+                          <TouchableOpacity
+                            style={
+                              form.startTime
+                                ? styles.timeTag
+                                : styles.addTimeButton
+                            }
+                            onPress={() => setTimeField("startTime")}
+                            activeOpacity={0.8}
+                          >
+                            <Text
+                              style={
+                                form.startTime
+                                  ? styles.timeTagText
+                                  : styles.addTimeText
+                              }
+                            >
+                              {form.startTime || "Add time"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <InlineTimeEditor
+                          visible={timeField === "startTime"}
+                          fieldLabel="Start Time"
+                          value={form.startTime}
+                          onClose={() => setTimeField("")}
+                          onSave={(value) => {
+                            setForm((prev) => ({ ...prev, startTime: value }));
+                            setTimeField("");
+                          }}
+                        />
+                      </View>
 
-                  <View style={styles.fieldGroup}>
-                    <Text style={styles.fieldLabel}>End Time</Text>
-                    <View style={styles.timeFieldRow}>
-                      <TouchableOpacity
-                        style={
-                          form.endTime ? styles.timeTag : styles.addTimeButton
-                        }
-                        onPress={() => setTimeField("endTime")}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          style={
-                            form.endTime
-                              ? styles.timeTagText
-                              : styles.addTimeText
-                          }
-                        >
-                          {form.endTime || "Add time"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    <InlineTimeEditor
-                      visible={timeField === "endTime"}
-                      fieldLabel="End Time"
-                      value={form.endTime}
-                      onClose={() => setTimeField("")}
-                      onSave={(value) => {
-                        setForm((prev) => ({ ...prev, endTime: value }));
-                        setTimeField("");
-                      }}
-                    />
-                  </View>
+                      <View style={styles.fieldGroup}>
+                        <Text style={styles.fieldLabel}>End Time</Text>
+                        <View style={styles.timeFieldRow}>
+                          <TouchableOpacity
+                            style={
+                              form.endTime
+                                ? styles.timeTag
+                                : styles.addTimeButton
+                            }
+                            onPress={() => setTimeField("endTime")}
+                            activeOpacity={0.8}
+                          >
+                            <Text
+                              style={
+                                form.endTime
+                                  ? styles.timeTagText
+                                  : styles.addTimeText
+                              }
+                            >
+                              {form.endTime || "Add time"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <InlineTimeEditor
+                          visible={timeField === "endTime"}
+                          fieldLabel="End Time"
+                          value={form.endTime}
+                          onClose={() => setTimeField("")}
+                          onSave={(value) => {
+                            setForm((prev) => ({ ...prev, endTime: value }));
+                            setTimeField("");
+                          }}
+                        />
+                      </View>
                     </>
                   ) : null}
 
                   <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Notes</Text>
-                <TextInput
-                  value={form.notes}
-                  onChangeText={(text) =>
-                    setForm((prev) => ({ ...prev, notes: text }))
-                  }
-                  placeholder="Optional notes"
-                  placeholderTextColor={Colours.textDisabled}
-                  style={[styles.input, styles.notesInput]}
-                  multiline
-                  textAlignVertical="top"
-                />
+                    <Text style={styles.fieldLabel}>Notes</Text>
+                    <TextInput
+                      value={form.notes}
+                      onChangeText={(text) =>
+                        setForm((prev) => ({ ...prev, notes: text }))
+                      }
+                      placeholder="Optional notes"
+                      placeholderTextColor={Colours.textDisabled}
+                      style={[styles.input, styles.notesInput]}
+                      multiline
+                      textAlignVertical="top"
+                    />
                   </View>
 
                   <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Color</Text>
-                <View style={styles.colorRow}>
-                  {colorPalette.map((color) => (
-                    <TouchableOpacity
-                      key={color}
-                      style={[
-                        styles.colorSwatch,
-                        { backgroundColor: color },
-                        form.color === color ? styles.colorSwatchActive : null,
-                      ]}
-                      onPress={() => setForm((prev) => ({ ...prev, color }))}
-                    />
-                  ))}
-                </View>
+                    <Text style={styles.fieldLabel}>Color</Text>
+                    <View style={styles.colorRow}>
+                      {colorPalette.map((color) => (
+                        <TouchableOpacity
+                          key={color}
+                          style={[
+                            styles.colorSwatch,
+                            { backgroundColor: color },
+                            form.color === color
+                              ? styles.colorSwatchActive
+                              : null,
+                          ]}
+                          onPress={() =>
+                            setForm((prev) => ({ ...prev, color }))
+                          }
+                        />
+                      ))}
+                    </View>
                   </View>
 
                   {validation.error ? (

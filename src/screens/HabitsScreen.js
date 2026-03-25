@@ -873,7 +873,7 @@ export default function Habits() {
                     style={[styles.sheetBtn, styles.sheetBtnSave]}
                     onPress={saveHabit}
                   >
-                    <Text style={styles.sheetBtnSaveText}>Save Habit</Text>
+                    <Text style={styles.sheetBtnSaveText}>Save</Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
