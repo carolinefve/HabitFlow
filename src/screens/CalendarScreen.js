@@ -33,23 +33,16 @@ export default function Calendar() {
   const [deadlines, setDeadlines] = useState([
     {
       id: 0,
-      title: "Test 1",
-      description: "This is some sample text",
-      date: new Date(2026, 2, 20, 23, 59),
+      title: "Coursework Haskell",
+      description: "",
+      date: new Date(2026, 2, 25, 16, 0),
       condition: false,
     },
     {
       id: 1,
-      title: "Test 2",
-      description: "This is some sample text",
-      date: new Date(2026, 2, 23, 23, 59),
-      condition: false,
-    },
-    {
-      id: 2,
-      title: "Test 3",
-      description: "This is some sample text",
-      date: new Date(2026, 2, 19, 23, 59),
+      title: "Coursework Maths",
+      description: "",
+      date: new Date(2026, 2, 26, 11, 0),
       condition: false,
     },
   ]);

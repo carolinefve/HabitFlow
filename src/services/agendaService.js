@@ -130,16 +130,13 @@ export function validateTaskForm(form) {
   ) {
     return {
       isValid: false,
-      error: "Start Time must be 5:00 AM or later.",
+      error: "Start Time must be 7:00 AM or later.",
     };
   }
-  if (
-    normalizedEnd &&
-    timeToMinutes(normalizedEnd) < FIRST_VISIBLE_MINUTE
-  ) {
+  if (normalizedEnd && timeToMinutes(normalizedEnd) < FIRST_VISIBLE_MINUTE) {
     return {
       isValid: false,
-      error: "End Time must be 5:00 AM or later.",
+      error: "End Time must be 7:00 AM or later.",
     };
   }
   if (
@@ -211,7 +208,7 @@ export function computeBlockHeight(task) {
 }
 
 export function computeBlockTop(task, fallbackIndex) {
-  const baseline = timeToMinutes("5:00 AM");
+  const baseline = timeToMinutes("7:00 AM");
   const start = timeToMinutes(task.startTime);
   if (start === null) return 14 + fallbackIndex * 92;
 

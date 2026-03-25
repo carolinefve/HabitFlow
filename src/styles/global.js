@@ -25,6 +25,7 @@ export const Colours = {
 
   // More colours
   yellow: "#F9C784",
+  orange: "#d78922",
   purple: "#A78BFA",
   blue: "#3A7BFF",
   brown: "#8D6E63",
