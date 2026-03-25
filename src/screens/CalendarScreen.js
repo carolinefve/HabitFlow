@@ -1,68 +1,54 @@
 import { useState } from "react";
-import { Modal,
-         View,
-         Text,
-         StyleSheet,
-         ScrollView,
-         TouchableOpacity,
-         TextInput
-       } from "react-native";
-import DatePicker, { getFormatedDate} from "react-native-modern-datepicker";
-// import DatePicker from "react-native-date-picker";
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import DatePicker, { getFormatedDate } from "react-native-modern-datepicker";
+import { Colours, Radius, Spacing, HeaderTitle } from "../styles/global";
 
-export default function Calendar () {
-  const now   = new Date();
+export default function Calendar() {
+  const now = new Date();
   const [currentDate, setCurrentDate] = useState(now);
-  const today = now.getDate(); // numerical number from 0-30
-  const month = currentDate.getMonth(); // numerical number from 0-11
-  const year  = currentDate.getFullYear(); // numerical number of the current year (e.g. 2017)
+  const today = now.getDate();
+  const month = currentDate.getMonth();
+  const year = currentDate.getFullYear();
 
   const systemMonth = now.getMonth();
 
-  const defaultDate = getFormatedDate(now, 'YYYY/MM/DD'); // used for setting the user selected date for each deadline
+  const defaultDate = getFormatedDate(now, "YYYY/MM/DD");
 
-  var numDaysInMonth = getDaysInMonth(month, year); // function at the bottom
-  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7; // number of empty tiles before the month starts
+  var numDaysInMonth = getDaysInMonth(month, year);
+  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7;
 
-  /*
-    All calendar boxes before the start date are empty (null)
-    A week has 7 days, maximum 6 weeks per month, therefore each calendar has 7x6 == 42 tiles
-  */
   const calendarCells = [];
-  for (var i = 0; i < startOffset; i++) // navigate to the first day in the month
-    calendarCells.push(null);
-  for (var i = 1; i <= numDaysInMonth; i++) // fill in the calendar
-    calendarCells.push(i);
-  while (calendarCells.length < 42) // fill the rest of the calendar
-    calendarCells.push(null);
+  for (var i = 0; i < startOffset; i++) calendarCells.push(null);
+  for (var i = 1; i <= numDaysInMonth; i++) calendarCells.push(i);
+  while (calendarCells.length < 42) calendarCells.push(null);
 
-  /* Deadline Array */
   const [deadlines, setDeadlines] = useState([
     {
       id: 0,
-      title: "Test 1",
-      description: "This is some sample text",
-      date: new Date(2026, 2, 20, 23, 59), // 2026, March 20th 11:59:00 PM
+      title: "Coursework Haskell",
+      description: "",
+      date: new Date(2026, 2, 25, 16, 0),
       condition: false,
     },
     {
       id: 1,
-      title: "Test 2",
-      description: "This is some sample text",
-      date: new Date(2026, 2, 23, 23, 59),
-      condition: false,
-    },
-    {
-      id: 2,
-      title: "Test 3",
-      description: "This is some sample text",
-      date: new Date(2026, 2, 19, 23, 59),
+      title: "Coursework Maths",
+      description: "",
+      date: new Date(2026, 2, 26, 11, 0),
       condition: false,
     },
   ]);
-  /* Helper function for generating red dots that indicate a date on the calendar has a deadline */
+
   function hasDeadline(day) {
-    return deadlines.some(deadline => {
+    return deadlines.some((deadline) => {
       const deadlineDate = new Date(deadline.date);
       return (
         !deadline.condition &&
@@ -70,562 +56,730 @@ export default function Calendar () {
         deadlineDate.getMonth() === month &&
         deadlineDate.getFullYear() === year
       );
-    }); 
+    });
   }
-  /* Helper functions for sorting the deadlines */
-  const filteredDeadlines = selectedDay ? deadlines.filter((item) => {
-      const d = new Date(item.date);
-      return (
-        d.getDate() === Number(selectedDay) &&
-        d.getMonth() === month &&
-        d.getFullYear() === year
-      );
-    })
-  : deadlines;
+
+  const filteredDeadlines = selectedDay
+    ? deadlines.filter((item) => {
+        const d = new Date(item.date);
+        return (
+          d.getDate() === Number(selectedDay) &&
+          d.getMonth() === month &&
+          d.getFullYear() === year
+        );
+      })
+    : deadlines;
 
   const sortedDeadlines = [...filteredDeadlines].sort((a, b) => {
     return new Date(a.date) - new Date(b.date);
   });
 
-  /* Selection Constants */
-  const [selectedDay, setSelectedDay]           = useState();     // for selecting a day from the calendar
-  const [selectedDeadline, setSelectedDeadline] = useState(null); // for opening deadline details
-  const [title, setTitle]                       = useState("");   // for editing / creating deadline titles
-  const [description, setDescription]           = useState("");   // for editing / creating deadline descriptions
-  const [date, setDate]                         = useState(defaultDate); // for editing / creating deadline due dates
-  const [time, setTime]                         = useState("12:00");     // for editing / creating deadline due time
-  /* UI Constants */
-  const [modalVisible, setModalVisible]         = useState(false);
-  const [showDatePicker, setShowDatePicker]     = useState(false);
-  const [showTimePicker, setShowTimePicker]     = useState(false);
+  const [selectedDay, setSelectedDay] = useState();
+  const [selectedDeadline, setSelectedDeadline] = useState(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(defaultDate);
+  const [time, setTime] = useState("12:00");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  /* Main Return Call */
+  const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+
   return (
-    <View style={{flex: 1, paddingTop: 10, alignItems: 'center', backgroundColor: '#282b4d'}}>
-      {/* General UI */}
-      <View style={{marginBottom: 10}}>
-        <Text style={{fontSize: 22, fontWeight: 'bold', color: 'white'}}>
-          {monthName(month)}
-        </Text>
+    <View style={styles.screen}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => {
+            setCurrentDate(new Date(year, month - 1, 1));
+            setSelectedDay();
+          }}
+        >
+          <Text style={styles.navButtonText}>Prev</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>{monthName(month)}</Text>
+
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => {
+            setCurrentDate(new Date(year, month + 1, 1));
+            setSelectedDay();
+          }}
+        >
+          <Text style={styles.navButtonText}>Next</Text>
+        </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        style={{position: 'absolute', top: 15, left: 7.5}}
-        onPress={() => {
-          const newDate = new Date(year, month-1, 1); // next month is minus one
-          setCurrentDate(newDate);
-          setSelectedDay();
-        }}
-      >
-        <Text style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
-          Prev
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={{position: 'absolute', top: 15, right: 7.5}}
-        onPress={() => {
-          const newDate = new Date(year, month+1, 1); // next month is plus one
-          setCurrentDate(newDate);
-          setSelectedDay();
-        }}
-      >
-        <Text style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
-          Next
-        </Text>
-      </TouchableOpacity>
-
-      <View style={{width: '95%', aspectRatio: 1.2, flexDirection: 'row', flexWrap: 'wrap'}}>
-        {calendarCells.map((day, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              {
-                width: '14.28571429%',
-                height: '16.66666667%',
-                aspectRatio: 1,
-                borderWidth: 1,
-                borderColor: '#181821',
-                backgroundColor: '#21225d',
-                justifyContent: 'center',
-                alignItems: 'center'
-              },
-              day === today && systemMonth === month? {backgroundColor: '#902d2d'} : null,
-              day === selectedDay ? {backgroundColor: '#1984ff'} : null
-            ]}
-            onPress={() => day === selectedDay ? setSelectedDay() : day && setSelectedDay(day)}
-            // if the current day is the selected day, selecteday becomes empty
-            // else set the selected day to the current day
+      {/* Day-of-week labels */}
+      <View style={styles.dayLabelRow}>
+        {DAY_LABELS.map((label) => (
+          <Text
+            key={label}
+            style={styles.dayLabel}
           >
-            {day && (
-              <>
-                {hasDeadline(day) && (
-                  <View style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: 'red',
-                    marginTop: 2
-                  }} />
-                )}
-                <Text style={{color: 'white'}}>{day}</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            {label}
+          </Text>
         ))}
       </View>
 
-      {/* Generate Deadline Cards */}
-      <ScrollView style={{width: '95%', marginTop: 10}}>
-        <Text style={{color: 'white', textAlign: 'center', marginTop: 10, fontWeight: 'bold'}}>
+      {/* Calendar grid */}
+      <View style={styles.calendarGrid}>
+        {calendarCells.map((day, index) => {
+          const isToday = day === today && systemMonth === month;
+          const isSelected = day === selectedDay;
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.calendarCell,
+                isToday && styles.calendarCellToday,
+                isSelected && styles.calendarCellSelected,
+              ]}
+              onPress={() =>
+                day === selectedDay
+                  ? setSelectedDay()
+                  : day && setSelectedDay(day)
+              }
+            >
+              {day && (
+                <>
+                  {hasDeadline(day) && <View style={styles.deadlineDot} />}
+                  <Text
+                    style={[
+                      styles.calendarCellText,
+                      isToday && styles.calendarCellTextToday,
+                      isSelected && styles.calendarCellTextSelected,
+                    ]}
+                  >
+                    {day}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Deadline list */}
+      <ScrollView
+        style={styles.listScroll}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.listHeading}>
           {selectedDay
-            ? `Showing deadlines for ${selectedDay}`
-            : "Showing all deadlines"}
+            ? `Deadlines for ${selectedDay} ${monthName(month)}`
+            : "All deadlines"}
         </Text>
-        {/* Map deadlines */}
+
+        {sortedDeadlines.length === 0 && (
+          <View style={styles.emptyStateCard}>
+            <Text style={styles.emptyStateTitle}>No deadlines</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Tap + to add a new deadline.
+            </Text>
+          </View>
+        )}
+
         {sortedDeadlines.map((item) => (
           <TouchableOpacity
             key={item.id}
-            style={[{
-              width: '100%',
-              height: 'auto',
-              marginTop: 15,
-              padding: 15,
-              borderRadius: 8,
-              backgroundColor: '#271540',
-            },
-            item.condition && {
-              opacity: 0.5,
-              backgroundColor: '#555',
-            },
+            style={[
+              styles.deadlineCard,
+              item.condition && styles.deadlineCardDone,
             ]}
             onPress={() => setSelectedDeadline(item)}
           >
-            {/* Text on the deadline cards */}
-            <View>
-              <Text style={{fontWeight: 'bold', marginBottom: 5, color: 'white'}} numberOfLines={1}>
+            <View style={styles.deadlineCardAccent} />
+            <View style={styles.deadlineCardBody}>
+              <Text
+                style={styles.deadlineCardTitle}
+                numberOfLines={1}
+              >
                 {item.title}
               </Text>
-              <Text style={{fontWeight: 'regular', color: 'white'}} numberOfLines={1}>
-                Due: {item?.date?.toLocaleString([], {
-                  year: 'numeric', month: 'long', day: 'numeric',
-                  hour: '2-digit', minute: '2-digit', hour12: true,
+              <Text
+                style={styles.deadlineCardDate}
+                numberOfLines={1}
+              >
+                Due:{" "}
+                {item?.date?.toLocaleString([], {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
                 })}
               </Text>
             </View>
-
-            <Modal visible={selectedDeadline !== null} transparent={true} animationType="slide">
-              <View style={styles.modalBackground}>
-                <View style={styles.modalCard}>
-                  
-                  <View>
-                    <Text style={[
-                      {fontSize: 20, fontWeight: 'bold'},
-                      {marginLeft: 10},
-                      {marginRight: 10},
-                      {marginTop: 20},
-                      {color: 'white'}
-                    ]}>
-                      Due: {selectedDeadline?.date?.toLocaleString([], {
-                        year: 'numeric', month: 'long', day: 'numeric',
-                        hour: '2-digit', minute: '2-digit', hour12: true,
-                      })}
-                    </Text>
-                    <Text style={[
-                      {fontSize: 20, fontWeight: 'bold'},
-                      {marginLeft: 10},
-                      {marginRight: 10},
-                      {marginTop: 20},
-                      {marginBottom: 20},
-                      {color: 'white'}
-                    ]}>
-                      {selectedDeadline?.title}
-                    </Text>
-
-                    <Text style={[
-                      {marginLeft: 10},
-                      {marginRight: 10},
-                      {color: 'white'}
-                    ]}>
-                      {selectedDeadline?.description}
-                    </Text>
-                  </View>
-
-                  {/* Close button */}
-                  <TouchableOpacity
-                    style={[
-                      buttonStyles.textButton,
-                      positionStyles.bottomLeft,
-                    ]}
-                    onPress={() => {
-                      setSelectedDeadline(null);
-                      setModalVisible(false);
-                    }}
-                  >
-                    <Text style={[{color: 'white'}, textStyles.uiText20]}>Close</Text>
-                  </TouchableOpacity>
-
-                  {/* Complete button */}
-                  <TouchableOpacity
-                    style={[
-                      buttonStyles.textButton,
-                      positionStyles.bottomRight,
-                    ]}
-                    onPress={() => {
-                      setDeadlines(prev => 
-                        prev.map(item =>
-                          item.id === selectedDeadline.id ? {...item, condition: true} : item
-                        )
-                      );
-                      
-                      setSelectedDeadline(null);
-                    }
-                  }>
-                    <Text style={[{color: 'white'}, textStyles.uiText20]}>Complete</Text>
-                  </TouchableOpacity>
-
-                </View>
-              </View>
-
-            </Modal>
-
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Add deadline button */}
+      {/* FAB */}
       <TouchableOpacity
-        style={[buttonStyles.circleButtonBlue, positionStyles.bottomRight]}
+        style={styles.fab}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={[{color: 'white'}, textStyles.uiText30]}>+</Text>
+        <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
 
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalCard}>
-            <View>
-              {/* Title of the window */}
-              <Text style={[{color: 'white'}, textStyles.uiText30]}>Create a New Event</Text>
+      {/* ── Detail modal ── */}
+      <Modal
+        visible={selectedDeadline !== null}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{selectedDeadline?.title}</Text>
 
-              {/* Set deadline title */}
-              <View style={[styles.tile]}>
-                <TextInput 
-                  style={[{color: 'white'}, textStyles.uiText20]}
+            <Text style={styles.detailDate}>
+              Due:{" "}
+              {selectedDeadline?.date?.toLocaleString([], {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
+            </Text>
+
+            {selectedDeadline?.description ? (
+              <Text style={styles.detailDescription}>
+                {selectedDeadline.description}
+              </Text>
+            ) : null}
+
+            <View style={styles.footerButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={() => {
+                  setSelectedDeadline(null);
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.cancelText}>Close</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, styles.saveButton]}
+                onPress={() => {
+                  setDeadlines((prev) =>
+                    prev.map((item) =>
+                      item.id === selectedDeadline.id
+                        ? { ...item, condition: true }
+                        : item,
+                    ),
+                  );
+                  setSelectedDeadline(null);
+                }}
+              >
+                <Text style={styles.saveText}>Complete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Create modal ── */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Create a New Event</Text>
+
+            <ScrollView
+              style={styles.formScroll}
+              contentContainerStyle={styles.formContent}
+            >
+              {/* Title */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Title</Text>
+                <TextInput
+                  style={styles.input}
                   placeholder="Title"
+                  placeholderTextColor={Colours.textDisabled}
                   value={title}
                   onChangeText={setTitle}
                 />
               </View>
 
-              {/* Set deadline description */}
-              <View style={[styles.tile, {height: '25%'}]}>
-                <TextInput 
-                  style={[textStyles.uiText16, {color: 'white'}]}
+              {/* Description */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Description</Text>
+                <TextInput
+                  style={[styles.input, styles.notesInput]}
                   placeholder="Description"
+                  placeholderTextColor={Colours.textDisabled}
                   value={description}
                   onChangeText={setDescription}
                   multiline={true}
                 />
               </View>
-            
-              {/* Set deadline date */}
-              <TouchableOpacity onPress={() => setShowDatePicker(!showDatePicker)}>
-                <View style={styles.tileSmall}>
-                  <Text style={[textStyles.uiText16, {color: 'white'}]}>
-                    Date: {date}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DatePicker
-                  style={{height: '0%'}} // changes how much the "description" section expands
-                  mode='calendar'
-                  isGregorian={true}
-                  selected={defaultDate}
-                  minimumDate={defaultDate}
-                  onDateChange={setDate}
-                  onSelectedChange={(selectedDate) => setDate(selectedDate)}
-                  options={{
-                    backgroundColor: '#1c1c1f',
-                    textHeaderColor: '#fff',
-                    textDefaultColor: '#fff',
-                    selectedTextColor: '#fff',
-                    mainColor: '#1984ff',
-                    textSecondaryColor: '#aaa',
-                    borderColor: '#333',
-                  }}
-                />
-              )}
 
-              {/* Set deadline time */}
-              <TouchableOpacity onPress={() => setShowTimePicker(!showTimePicker)}>
-                <View style={styles.tileSmall}>
-                  <Text style={[textStyles.uiText16, {color: 'white'}]}>
-                    Time: {time}
-                  </Text>
-                </View>
+              {/* Date */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Date</Text>
+                <TouchableOpacity
+                  style={styles.timeTag}
+                  onPress={() => setShowDatePicker(!showDatePicker)}
+                >
+                  <Text style={styles.timeTagText}>{date}</Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DatePicker
+                    style={{ height: "0%" }}
+                    mode="calendar"
+                    isGregorian={true}
+                    selected={defaultDate}
+                    minimumDate={defaultDate}
+                    onDateChange={setDate}
+                    onSelectedChange={(selectedDate) => setDate(selectedDate)}
+                    options={{
+                      backgroundColor: Colours.bgCardDark,
+                      textHeaderColor: Colours.textPrimary,
+                      textDefaultColor: Colours.textPrimary,
+                      selectedTextColor: Colours.textPrimary,
+                      mainColor: Colours.brandBlue,
+                      textSecondaryColor: Colours.textSecondary,
+                      borderColor: Colours.borderMid,
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Time */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Time</Text>
+                <TouchableOpacity
+                  style={styles.timeTag}
+                  onPress={() => setShowTimePicker(!showTimePicker)}
+                >
+                  <Text style={styles.timeTagText}>{time}</Text>
+                </TouchableOpacity>
+                {showTimePicker && (
+                  <DatePicker
+                    style={{ height: "0%" }}
+                    mode="time"
+                    isGregorian={true}
+                    onTimeChange={setTime}
+                    onSelectedChange={(selectedTime) => setTime(selectedTime)}
+                    options={{
+                      backgroundColor: Colours.bgCardDark,
+                      textHeaderColor: Colours.textPrimary,
+                      textDefaultColor: Colours.textPrimary,
+                      selectedTextColor: Colours.textPrimary,
+                      mainColor: Colours.brandBlue,
+                      textSecondaryColor: Colours.textSecondary,
+                      borderColor: Colours.borderMid,
+                    }}
+                  />
+                )}
+              </View>
+            </ScrollView>
+
+            <View style={styles.footerButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={() => {
+                  setTitle("");
+                  setDescription("");
+                  setDate(defaultDate);
+                  setModalVisible(false);
+                  setShowDatePicker(false);
+                  setShowTimePicker(false);
+                }}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              {showTimePicker && (
-                <DatePicker
-                  style={{height: '0%'}} // changes how much the "description" section expands
-                  mode="time"
-                  isGregorian={true}
-                  onTimeChange={setTime}
-                  onSelectedChange={(selectedTime) => setTime(selectedTime)}
-                  options={{
-                    backgroundColor: '#1c1c1f',
-                    textHeaderColor: '#fff',
-                    textDefaultColor: '#fff',
-                    selectedTextColor: '#fff',
-                    mainColor: '#1984ff',
-                    textSecondaryColor: '#aaa',
-                    borderColor: '#333',
-                  }}
-                />
-              )}
+
+              <TouchableOpacity
+                style={[styles.actionButton, styles.saveButton]}
+                onPress={() => {
+                  const [y, m, d] = date.split("/").map(Number);
+                  const [hour, minute] = time.split(":").map(Number);
+                  const combinedDate = new Date(y, m - 1, d, hour, minute);
+                  const newDeadLine = {
+                    id: Date.now(),
+                    title,
+                    description,
+                    date: combinedDate,
+                  };
+                  setDeadlines([...deadlines, newDeadLine]);
+                  setTitle("");
+                  setDescription("");
+                  setDate(defaultDate);
+                  setTime("12:00");
+                  setModalVisible(false);
+                  setShowDatePicker(false);
+                  setShowTimePicker(false);
+                }}
+              >
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
             </View>
-
-            {/* "Add" button */}
-            <TouchableOpacity
-              style={[buttonStyles.textButton, positionStyles.bottomRight]}
-              onPress={() => {
-                const [year, month, day] = date.split('/').map(Number);
-                const [hour, minute]     = time.split(':').map(Number);
-
-                const combinedDate = new Date(year, month-1, day, hour, minute); // convert to a Date object
-                const newDeadLine = {
-                  id: Date.now(),
-                  title,
-                  description,
-                  date: combinedDate,
-                };
-
-                setDeadlines([...deadlines, newDeadLine]);
-                setTitle("");
-                setDescription("");
-                setDate(defaultDate);
-                setTime("12:00");
-                setModalVisible(false);
-                setShowDatePicker(false);
-                setShowTimePicker(false);
-              }}
-            >
-              <Text style={[{color: 'white'}, textStyles.uiText20]}>Add</Text>
-            </TouchableOpacity>
-
-            {/* "Cancel" button */}
-            <TouchableOpacity
-              style={[buttonStyles.textButton, positionStyles.bottomLeft]}
-              onPress={() => {
-                setTitle("");
-                setDescription("");
-                setDate(defaultDate);
-                setModalVisible(false);
-                setShowDatePicker(false);
-                setShowTimePicker(false);
-              }}
-            >
-              <Text style={[{color: 'white'}, textStyles.uiText20]}>Cancel</Text>
-            </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
-
-
-
     </View>
-  )
+  );
 }
 
-const styles = StyleSheet.create ({
-  modalBackground: {
+const styles = StyleSheet.create({
+  screen: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    backgroundColor: Colours.bgPrimary,
+    paddingTop: Spacing.screenPaddingTop,
+    paddingHorizontal: Spacing.screenPaddingHorizontal,
   },
 
-  modalCard: {
-    width: '100%',
-    height: '90%',
-    padding: 10,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    backgroundColor: '#2e2e2eee',
+  // ── Header ──
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  headerTitle: {
+    ...HeaderTitle.title,
+    fontSize: 28,
+  },
+  navButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  navButtonText: {
+    color: Colours.brandBlue,
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 34,
   },
 
-  tile: {
-    width: '100%',
-    height: 'auto',
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#1c1c1f'
+  // ── Calendar grid ──
+  dayLabelRow: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  dayLabel: {
+    width: "14%",
+    textAlign: "center",
+    color: Colours.textMuted,
+    fontSize: 18,
+    fontWeight: "700",
+    paddingBottom: 6,
+  },
+  calendarGrid: {
+    width: "100%",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    borderRadius: Radius.lg,
+    overflow: "hidden",
+    borderColor: Colours.borderSubtle,
+    marginBottom: 15,
+  },
+  calendarCell: {
+    width: "14%",
+    aspectRatio: 1,
+    borderWidth: 0.5,
+    borderColor: Colours.borderSubtle,
+    backgroundColor: Colours.bgSecondary,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 12,
+  },
+  calendarCellToday: {
+    backgroundColor: Colours.brandBlueDark,
+  },
+  calendarCellSelected: {
+    backgroundColor: Colours.green,
+    borderColor: Colours.green,
+  },
+  calendarCellText: {
+    color: Colours.textSecondary,
+    fontSize: 18,
+    fontWeight: "500",
+  },
+  calendarCellTextToday: {
+    color: Colours.textPrimary,
+    fontWeight: "800",
+  },
+  calendarCellTextSelected: {
+    color: Colours.textPrimary,
+    fontWeight: "700",
+  },
+  deadlineDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colours.red,
+    position: "absolute",
+    top: 6,
   },
 
-  tileSmall: {
-    width: '50%',
-    height: 'auto',
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#1c1c1f'
-  }
-})
+  // ── Deadline list ──
+  listScroll: {
+    flex: 1,
+  },
+  listContent: {
+    paddingBottom: 100,
+    gap: 10,
+  },
+  listHeading: {
+    color: Colours.textPrimary,
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  deadlineCard: {
+    flexDirection: "row",
+    borderRadius: Radius.lg,
+    backgroundColor: Colours.bgCardDark,
+    borderWidth: 1,
+    borderColor: Colours.brandBlue,
+    overflow: "hidden",
+    minHeight: 62,
+  },
+  deadlineCardDone: {
+    opacity: 0.4,
+  },
+  deadlineCardBody: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  deadlineCardTitle: {
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  deadlineCardDate: {
+    color: Colours.textMuted,
+    fontSize: 14,
+    fontWeight: "600",
+  },
 
-const textStyles = StyleSheet.create ({
-  uiText30: {
-    fontWeight: 'bold',
+  emptyStateCard: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    backgroundColor: Colours.bgCardDark,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  emptyStateTitle: {
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  emptyStateSubtitle: {
+    marginTop: 4,
+    color: Colours.textSecondary,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+
+  // ── FAB ──
+  fab: {
+    position: "absolute",
+    right: Spacing.screenPaddingHorizontal,
+    bottom: 95,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: Colours.brandBlue,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colours.bgPrimary,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  fabText: {
+    color: Colours.bgPrimary,
     fontSize: 30,
-    textAlign: 'center',
-    textAlignVertical: 'center',
+    fontWeight: "500",
+    lineHeight: 31,
   },
 
-  uiText20: {
-    fontWeight: 'bold',
+  // ── Bottom-sheet modal ──
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: Colours.backdropCard,
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    maxHeight: "89%",
+    backgroundColor: Colours.bgSecondary,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 14,
+    borderTopWidth: 1,
+    borderColor: Colours.borderMid,
+  },
+  sheetHandle: {
+    alignSelf: "center",
+    width: 46,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colours.brandBlueDim,
+    marginBottom: 12,
+  },
+  sheetTitle: {
+    color: Colours.textPrimary,
     fontSize: 20,
-    textAlign: 'center',
-    textAlignVertical: 'center',
+    fontWeight: "700",
+    marginBottom: 12,
   },
 
-  uiText16: {
-    fontWeight: 'regular',
-    fontSize: 16,
-    textAlign: 'left',
-    textAlignVertical: 'top'
-  }
+  // Detail modal content
+  detailDate: {
+    color: Colours.textMuted,
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  detailDescription: {
+    color: Colours.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 10,
+  },
 
-})
+  // ── Form ──
+  formScroll: {
+    maxHeight: "75%",
+  },
+  formContent: {
+    paddingBottom: 18,
+    gap: 14,
+  },
+  fieldGroup: {
+    gap: 8,
+  },
+  fieldLabel: {
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  input: {
+    borderRadius: Radius.md,
+    backgroundColor: Colours.bgCardDark,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    color: Colours.textPrimary,
+    fontSize: 14,
+  },
+  notesInput: {
+    minHeight: 92,
+    textAlignVertical: "top",
+  },
+  timeTag: {
+    borderRadius: Radius.sm,
+    backgroundColor: Colours.bgCardDark,
+    borderWidth: 1,
+    borderColor: Colours.brandBlueDim,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    alignSelf: "flex-start",
+  },
+  timeTagText: {
+    color: Colours.textPrimary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
 
-const buttonStyles = StyleSheet.create ({
-    circleButtonBlack: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: '#2a2d31',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
-
-    circleButtonBlue: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: '#2383ff',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
-
-    circleButtonRed: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: '#e24a4a',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
-
-    textButton: {
-      height: 50,
-      paddingHorizontal: 16,
-      borderRadius: 25,
-      backgroundColor: '#161f2a',
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: "flex-start",
-    }
-})
-
-const positionStyles = StyleSheet.create ({
-    topLeft: {
-      position: 'absolute',
-      top: 15,
-      left: 7.5,
-    },
-
-    topRight: {
-      position: 'absolute',
-      top: 15,
-      right: 7.5,
-    },
-
-    bottomLeft: {
-      position: 'absolute',
-      bottom: 20,
-      left: 20,
-    },
-
-    bottomRight: {
-      position: 'absolute',
-      bottom: 20,
-      right: 20,
-    },
-})
+  // ── Footer buttons ──
+  footerButtons: {
+    borderTopWidth: 1,
+    borderTopColor: Colours.borderMid,
+    marginTop: 6,
+    paddingTop: 12,
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionButton: {
+    flex: 1,
+    borderRadius: Radius.md,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: Colours.bgCardDark,
+  },
+  saveButton: {
+    backgroundColor: Colours.green,
+    borderWidth: 1,
+    borderColor: Colours.green,
+  },
+  cancelText: {
+    color: Colours.textSecondary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  saveText: {
+    color: Colours.textPrimary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+});
 
 // ===== Helper Functions =====
-function getDaysInMonth (month, year) {
-  var numDaysInMonth = 0;
+function getDaysInMonth(month, year) {
   switch (month) {
-    case 0:  // Janurary
-    case 2:  // March
-    case 4:  // May
-    case 6:  // July
-    case 7:  // August
-    case 9:  // October
-    case 11: // December
-      numDaysInMonth = 31;
-      break;
-
-    case 3:  // April
-    case 5:  // June
-    case 8:  // September
-    case 10: // November
-      numDaysInMonth = 30;
-      break;
-
-    case 1:  // Feburary
-      if ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) {
-        numDaysInMonth = 29;
-      }
-      else {
-        numDaysInMonth = 28;
-      }
-      break;
-
+    case 0:
+    case 2:
+    case 4:
+    case 6:
+    case 7:
+    case 9:
+    case 11:
+      return 31;
+    case 3:
+    case 5:
+    case 8:
+    case 10:
+      return 30;
+    case 1:
+      return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28;
     default:
       return "Invalid Month";
   }
-
-  return numDaysInMonth;
 }
 
-function monthName (index) {
-  switch (index) {
-    case 0:
-      return "Janurary";
-    case 1:
-      return "Feburary";
-    case 2:
-      return "March";
-    case 3:
-      return "April";
-    case 4:
-      return "May";
-    case 5:
-      return "June";
-    case 6:
-      return "July";
-    case 7:
-      return "August";
-    case 8:
-      return "September";
-    case 9:
-      return "October";
-    case 10:
-      return "November";
-    case 11:
-      return "December";
-    default:
-      return "Invalid Month Index";
-  }
+function monthName(index) {
+  return (
+    [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ][index] ?? "Invalid Month Index"
+  );
 }

@@ -27,9 +27,45 @@ const WEEK_DAYS = [
   { short: "S", value: 0 },
 ];
 
+const INITIAL_HABITS = [
+  {
+    id: "h-1",
+    description: "Wake up at 7am",
+    category: "Productivity",
+    rawDate: new Date(2026, 1, 25),
+    rawTime: new Date(2026, 1, 25, 7, 0),
+    dateString: "25/02/2026",
+    timeString: "07:00 AM",
+    frequency: { type: "daily", days: null },
+    duration: { hours: 0, minutes: 0 },
+  },
+  {
+    id: "h-2",
+    description: "Read for 20 minutes",
+    category: "Learning",
+    rawDate: new Date(2026, 1, 25),
+    rawTime: new Date(2026, 1, 25, 21, 0),
+    dateString: "25/02/2026",
+    timeString: "",
+    frequency: { type: "weekly", days: [1, 2, 3, 4, 5] },
+    duration: { hours: 0, minutes: 20 },
+  },
+  {
+    id: "h-3",
+    description: "Gym",
+    category: "Health & Fitness",
+    rawDate: new Date(2026, 1, 25),
+    rawTime: new Date(2026, 1, 25, 21, 0),
+    dateString: "25/02/2026",
+    timeString: "1:00 PM",
+    frequency: { type: "weekly", days: [1, 2, 3, 4, 5] },
+    duration: { hours: 1, minutes: 0 },
+  },
+];
+
 export default function Habits() {
   // list state
-  const [habits, setHabits] = useState([]);
+  const [habits, setHabits] = useState(INITIAL_HABITS);
   const [completionLog, setCompletionLog] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState("manual");
@@ -873,7 +909,7 @@ export default function Habits() {
                     style={[styles.sheetBtn, styles.sheetBtnSave]}
                     onPress={saveHabit}
                   >
-                    <Text style={styles.sheetBtnSaveText}>Save Habit</Text>
+                    <Text style={styles.sheetBtnSaveText}>Save</Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
