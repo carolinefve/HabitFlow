@@ -1,6 +1,7 @@
 const SLOT_HEIGHT = 88;
 const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;
 const BASE_DAY_DATE = new Date(2026, 1, 23);
+const FIRST_VISIBLE_MINUTE = 5 * 60;
 
 export function formatDateLabel(date) {
   const year = date.getFullYear();
@@ -121,6 +122,24 @@ export function validateTaskForm(form) {
     return {
       isValid: false,
       error: "Start Time and End Time must both be set.",
+    };
+  }
+  if (
+    normalizedStart &&
+    timeToMinutes(normalizedStart) < FIRST_VISIBLE_MINUTE
+  ) {
+    return {
+      isValid: false,
+      error: "Start Time must be 5:00 AM or later.",
+    };
+  }
+  if (
+    normalizedEnd &&
+    timeToMinutes(normalizedEnd) < FIRST_VISIBLE_MINUTE
+  ) {
+    return {
+      isValid: false,
+      error: "End Time must be 5:00 AM or later.",
     };
   }
   if (

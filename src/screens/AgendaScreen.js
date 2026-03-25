@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -19,7 +20,6 @@ import {
   createTemplateFromTasks,
   filterTasksByDate,
   formatDateLabel,
-  normalizeTimeInput,
   normalizeNumericTimeInput,
   parseTimeInputParts,
   parseTaskDate,
@@ -67,42 +67,152 @@ const timelineHours = [
 const initialTasks = [
   {
     id: "ad-1",
-    title: "Study",
+    title: "Reading",
     dateLabel: "2026-02-23",
     allDay: true,
-    notes: "Read notes",
+    notes: "",
     color: "#E53935",
     startTime: "",
     endTime: "",
   },
   {
     id: "ad-2",
-    title: "Clean Room",
-    dateLabel: "2026-02-23",
+    title: "Reading",
+    dateLabel: "2026-02-24",
     allDay: true,
-    notes: "Tidy up desk",
+    notes: "",
     color: "#8E24AA",
     startTime: "",
     endTime: "",
   },
   {
+    id: "ad-3",
+    title: "Reading",
+    dateLabel: "2026-02-25",
+    allDay: true,
+    notes: "",
+    color: "#3A7BFF",
+    startTime: "",
+    endTime: "",
+  },
+  {
+    id: "ad-4",
+    title: "Reading",
+    dateLabel: "2026-02-26",
+    allDay: true,
+    notes: "",
+    color: "#43A047",
+    startTime: "",
+    endTime: "",
+  },
+  {
+    id: "ad-5",
+    title: "Reading",
+    dateLabel: "2026-02-27",
+    allDay: true,
+    notes: "",
+    color: "#E53935",
+    startTime: "",
+    endTime: "",
+  },
+  {
     id: "t-1",
-    title: "Client Call",
+    title: "Morning Exercise",
     dateLabel: "2026-02-23",
     allDay: false,
-    startTime: "6:30 AM",
-    endTime: "7:20 AM",
-    notes: "Quarterly planning",
+    startTime: "6:00 AM",
+    endTime: "7:00 AM",
+    notes: "Morning workout",
     color: "#43A047",
   },
   {
     id: "t-2",
-    title: "Breakfast",
+    title: "Lecture 1",
     dateLabel: "2026-02-23",
     allDay: false,
-    startTime: "8:15 AM",
-    endTime: "9:00 AM",
-    notes: "Cafe downstairs",
+    startTime: "8:00 AM",
+    endTime: "10:00 AM",
+    notes: "Lecture Hall A",
+    color: "#3A7BFF",
+  },
+  {
+    id: "t-3",
+    title: "Morning Exercise",
+    dateLabel: "2026-02-24",
+    allDay: false,
+    startTime: "6:00 AM",
+    endTime: "7:00 AM",
+    notes: "Morning workout",
+    color: "#43A047",
+  },
+  {
+    id: "t-4",
+    title: "Lecture 2",
+    dateLabel: "2026-02-24",
+    allDay: false,
+    startTime: "8:00 AM",
+    endTime: "10:00 AM",
+    notes: "Lecture Hall A",
+    color: "#3A7BFF",
+  },
+  {
+    id: "t-5",
+    title: "Morning Exercise",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "6:00 AM",
+    endTime: "7:00 AM",
+    notes: "Morning workout",
+    color: "#43A047",
+  },
+  {
+    id: "t-6",
+    title: "Lecture 3",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "8:00 AM",
+    endTime: "10:00 AM",
+    notes: "Lecture Hall A",
+    color: "#3A7BFF",
+  },
+  {
+    id: "t-7",
+    title: "Morning Exercise",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "6:00 AM",
+    endTime: "7:00 AM",
+    notes: "Morning workout",
+    color: "#43A047",
+  },
+  {
+    id: "t-8",
+    title: "Lecture 4",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "8:00 AM",
+    endTime: "10:00 AM",
+    notes: "Lecture Hall A",
+    color: "#3A7BFF",
+  },
+  {
+    id: "t-9",
+    title: "Morning Exercise",
+    dateLabel: "2026-02-27",
+    allDay: false,
+    startTime: "6:00 AM",
+    endTime: "7:00 AM",
+    notes: "Morning workout",
+    color: "#43A047",
+  },
+  {
+    id: "t-10",
+    title: "Lecture 5",
+    dateLabel: "2026-02-27",
+    allDay: false,
+    startTime: "8:00 AM",
+    endTime: "10:00 AM",
+    notes: "Lecture Hall A",
     color: "#3A7BFF",
   },
 ];
@@ -115,19 +225,20 @@ function formatDate(date) {
   });
 }
 
-function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
+function InlineTimeEditor({ visible, fieldLabel, value, onClose, onSave }) {
   const [hourValue, setHourValue] = useState("");
   const [minuteValue, setMinuteValue] = useState("");
   const [periodValue, setPeriodValue] = useState("AM");
 
   React.useEffect(() => {
-    if (visible) {
-      const nextParts = parseTimeInputParts(value);
-      setHourValue(nextParts.hour);
-      setMinuteValue(nextParts.minute);
-      setPeriodValue(nextParts.period);
-    }
+    if (!visible) return;
+    const nextParts = parseTimeInputParts(value);
+    setHourValue(nextParts.hour);
+    setMinuteValue(nextParts.minute);
+    setPeriodValue(nextParts.period);
   }, [value, visible]);
+
+  if (!visible) return null;
 
   const normalized = normalizeNumericTimeInput(
     hourValue,
@@ -135,162 +246,112 @@ function TimeInputModal({ visible, fieldLabel, value, onClose, onSave }) {
     periodValue,
   );
   const hasValue = hourValue.trim().length > 0 || minuteValue.trim().length > 0;
-  const error =
-    hasValue && !normalized ? "Enter hour 1-12 and minute 00-59." : "";
+  const toMinutes = (timeValue) => {
+    if (!timeValue) return null;
+    const [clock, period] = timeValue.split(" ");
+    if (!clock || !period) return null;
+    const [rawHour, rawMinute] = clock.split(":").map(Number);
+    if (!Number.isFinite(rawHour) || !Number.isFinite(rawMinute)) return null;
+    let hour = rawHour;
+    if (period === "PM" && hour !== 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+    return hour * 60 + rawMinute;
+  };
+  const beforeVisibleRange =
+    normalized && toMinutes(normalized) !== null && toMinutes(normalized) < 300;
+  const error = hasValue && !normalized
+    ? "Enter hour 1-12 and minute 00-59."
+    : beforeVisibleRange
+      ? `${fieldLabel} must be 5:00 AM or later.`
+      : "";
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalBackdrop}>
-        <View style={[styles.dialog, styles.templateDialog]}>
-          <Text style={styles.dialogTitle}>{fieldLabel}</Text>
-          <Text style={styles.dialogHint}>
-            Enter hour and minute, then choose AM or PM.
-          </Text>
+    <View style={styles.inlineTimeEditor}>
+      <Text style={styles.dialogTitle}>{fieldLabel}</Text>
+      <Text style={styles.dialogHint}>
+        Enter hour and minute, then choose AM or PM.
+      </Text>
 
-          <View style={styles.timeInputRow}>
-            <TextInput
-              value={hourValue}
-              onChangeText={(text) =>
-                setHourValue(text.replace(/\D/g, "").slice(0, 2))
-              }
-              placeholder="2"
-              placeholderTextColor={Colours.textDisabled}
-              keyboardType="number-pad"
-              style={[
-                styles.input,
-                styles.timeSplitInput,
-                styles.timeInputField,
-              ]}
-            />
-            <Text style={styles.timeColon}>:</Text>
-            <TextInput
-              value={minuteValue}
-              onChangeText={(text) =>
-                setMinuteValue(text.replace(/\D/g, "").slice(0, 2))
-              }
-              placeholder="30"
-              placeholderTextColor={Colours.textDisabled}
-              keyboardType="number-pad"
-              style={[
-                styles.input,
-                styles.timeSplitInput,
-                styles.timeInputField,
-              ]}
-            />
-          </View>
-
-          <View style={styles.periodRow}>
-            {["AM", "PM"].map((period) => (
-              <TouchableOpacity
-                key={period}
-                style={[
-                  styles.periodButton,
-                  periodValue === period ? styles.periodButtonActive : null,
-                ]}
-                activeOpacity={0.82}
-                onPress={() => setPeriodValue(period)}
-              >
-                <Text
-                  style={[
-                    styles.periodButtonText,
-                    periodValue === period
-                      ? styles.periodButtonTextActive
-                      : null,
-                  ]}
-                >
-                  {period}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-          <View style={styles.inlineActions}>
-            <TouchableOpacity
-              style={[styles.smallActionButton, styles.cancelButton]}
-              onPress={onClose}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.smallActionButton,
-                styles.saveButton,
-                hasValue && !normalized ? styles.disabledButton : null,
-              ]}
-              onPress={() => onSave(normalized)}
-              disabled={hasValue && !normalized}
-            >
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      <View style={styles.timeInputRow}>
+        <TextInput
+          value={hourValue}
+          onChangeText={(text) =>
+            setHourValue(text.replace(/\D/g, "").slice(0, 2))
+          }
+          placeholder=""
+          placeholderTextColor={Colours.textDisabled}
+          keyboardType="number-pad"
+          style={[
+            styles.input,
+            styles.timeSplitInput,
+            styles.timeInputField,
+          ]}
+        />
+        <Text style={styles.timeColon}>:</Text>
+        <TextInput
+          value={minuteValue}
+          onChangeText={(text) =>
+            setMinuteValue(text.replace(/\D/g, "").slice(0, 2))
+          }
+          placeholder=""
+          placeholderTextColor={Colours.textDisabled}
+          keyboardType="number-pad"
+          style={[
+            styles.input,
+            styles.timeSplitInput,
+            styles.timeInputField,
+          ]}
+        />
       </View>
-    </Modal>
-  );
-}
 
-function TemplatePickerModal({ visible, templates, onClose, onSelect }) {
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalBackdrop}>
-        <View style={[styles.dialog, styles.templateDialog]}>
-          <Text style={styles.dialogTitle}>Use Template</Text>
-          <Text style={styles.dialogHint}>
-            Import all tasks into the selected day.
-          </Text>
-
-          <ScrollView
-            style={styles.templateList}
-            contentContainerStyle={styles.templateListContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {templates.length ? (
-              templates.map((template) => (
-                <TouchableOpacity
-                  key={template.id}
-                  style={styles.templateListItem}
-                  activeOpacity={0.82}
-                  onPress={() => onSelect(template)}
-                >
-                  <Text style={styles.templateListTitle}>{template.name}</Text>
-                  <Text style={styles.templateListMeta}>
-                    {template.tasks.length} task
-                    {template.tasks.length === 1 ? "" : "s"}
-                  </Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <View style={styles.emptyStateCard}>
-                <Text style={styles.emptyStateTitle}>No templates saved</Text>
-                <Text style={styles.emptyStateSubtitle}>
-                  Save a day first, then reuse it here.
-                </Text>
-              </View>
-            )}
-          </ScrollView>
-
+      <View style={styles.periodRow}>
+        {["AM", "PM"].map((period) => (
           <TouchableOpacity
-            style={[styles.actionButton, styles.cancelButton]}
-            onPress={onClose}
+            key={period}
+            style={[
+              styles.periodButton,
+              periodValue === period ? styles.periodButtonActive : null,
+            ]}
+            activeOpacity={0.82}
+            onPress={() => setPeriodValue(period)}
           >
-            <Text style={styles.cancelText}>Close</Text>
+            <Text
+              style={[
+                styles.periodButtonText,
+                periodValue === period ? styles.periodButtonTextActive : null,
+              ]}
+            >
+              {period}
+            </Text>
           </TouchableOpacity>
-        </View>
+        ))}
       </View>
-    </Modal>
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <View style={styles.inlineActions}>
+        <TouchableOpacity
+          style={[styles.smallActionButton, styles.cancelButton]}
+          onPress={onClose}
+        >
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.smallActionButton,
+            styles.saveButton,
+            hasValue && (!normalized || beforeVisibleRange)
+              ? styles.disabledButton
+              : null,
+          ]}
+          onPress={() => onSave(normalized)}
+          disabled={hasValue && (!normalized || beforeVisibleRange)}
+        >
+          <Text style={styles.saveText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
@@ -302,10 +363,18 @@ function AgendaTaskModal({
   onClose,
   onSave,
   onDelete,
-  onUseTemplate,
+  templates,
+  templatePickerVisible,
+  onOpenTemplatePicker,
+  onCloseTemplatePicker,
+  onSelectTemplate,
 }) {
   const [timeField, setTimeField] = useState("");
-  const modalTitle = mode === "edit" ? "Edit Task" : "Create Task";
+  const modalTitle = templatePickerVisible
+    ? "Use Template"
+    : mode === "edit"
+      ? "Edit Task"
+      : "Create Task";
   const validation = validateTaskForm(form);
 
   return (
@@ -326,20 +395,53 @@ function AgendaTaskModal({
               contentContainerStyle={styles.formContent}
               showsVerticalScrollIndicator={false}
             >
-              {mode === "create" ? (
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Template</Text>
-                  <TouchableOpacity
-                    style={styles.templateButton}
-                    activeOpacity={0.8}
-                    onPress={onUseTemplate}
-                  >
-                    <Text style={styles.templateButtonText}>Use Template</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
+              {templatePickerVisible ? (
+                <>
+                  <Text style={styles.dialogHint}>
+                    Import all tasks into the selected day.
+                  </Text>
+                  {templates.length ? (
+                    templates.map((template) => (
+                      <TouchableOpacity
+                        key={template.id}
+                        style={styles.templateListItem}
+                        activeOpacity={0.82}
+                        onPress={() => onSelectTemplate(template)}
+                      >
+                        <Text style={styles.templateListTitle}>
+                          {template.name}
+                        </Text>
+                        <Text style={styles.templateListMeta}>
+                          {template.tasks.length} task
+                          {template.tasks.length === 1 ? "" : "s"}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View style={styles.emptyStateCard}>
+                      <Text style={styles.emptyStateTitle}>No templates saved</Text>
+                      <Text style={styles.emptyStateSubtitle}>
+                        Save a day first, then reuse it here.
+                      </Text>
+                    </View>
+                  )}
+                </>
+              ) : (
+                <>
+                  {mode === "create" ? (
+                    <View style={styles.fieldGroup}>
+                      <Text style={styles.fieldLabel}>Template</Text>
+                      <TouchableOpacity
+                        style={styles.templateButton}
+                        activeOpacity={0.8}
+                        onPress={onOpenTemplatePicker}
+                      >
+                        <Text style={styles.templateButtonText}>Use Template</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
 
-              <View style={styles.fieldGroup}>
+                  <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Title</Text>
                 <TextInput
                   value={form.title}
@@ -350,9 +452,9 @@ function AgendaTaskModal({
                   placeholderTextColor={Colours.textDisabled}
                   style={styles.input}
                 />
-              </View>
+                  </View>
 
-              <View style={styles.fieldGroup}>
+                  <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Date</Text>
                 <View style={styles.dateRow}>
                   <View style={styles.dateBadge}>
@@ -361,9 +463,9 @@ function AgendaTaskModal({
                     </Text>
                   </View>
                 </View>
-              </View>
+                  </View>
 
-              <View style={styles.fieldGroup}>
+                  <View style={styles.fieldGroup}>
                 <View style={styles.switchRow}>
                   <Text style={styles.fieldLabel}>All Day</Text>
                   <Switch
@@ -388,10 +490,10 @@ function AgendaTaskModal({
                 {form.allDay ? (
                   <Text style={styles.allDayHint}>All Day</Text>
                 ) : null}
-              </View>
+                  </View>
 
-              {!form.allDay ? (
-                <>
+                  {!form.allDay ? (
+                    <>
                   <View style={styles.fieldGroup}>
                     <Text style={styles.fieldLabel}>Start Time</Text>
                     <View style={styles.timeFieldRow}>
@@ -413,6 +515,16 @@ function AgendaTaskModal({
                         </Text>
                       </TouchableOpacity>
                     </View>
+                    <InlineTimeEditor
+                      visible={timeField === "startTime"}
+                      fieldLabel="Start Time"
+                      value={form.startTime}
+                      onClose={() => setTimeField("")}
+                      onSave={(value) => {
+                        setForm((prev) => ({ ...prev, startTime: value }));
+                        setTimeField("");
+                      }}
+                    />
                   </View>
 
                   <View style={styles.fieldGroup}>
@@ -436,11 +548,21 @@ function AgendaTaskModal({
                         </Text>
                       </TouchableOpacity>
                     </View>
+                    <InlineTimeEditor
+                      visible={timeField === "endTime"}
+                      fieldLabel="End Time"
+                      value={form.endTime}
+                      onClose={() => setTimeField("")}
+                      onSave={(value) => {
+                        setForm((prev) => ({ ...prev, endTime: value }));
+                        setTimeField("");
+                      }}
+                    />
                   </View>
-                </>
-              ) : null}
+                    </>
+                  ) : null}
 
-              <View style={styles.fieldGroup}>
+                  <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Notes</Text>
                 <TextInput
                   value={form.notes}
@@ -453,9 +575,9 @@ function AgendaTaskModal({
                   multiline
                   textAlignVertical="top"
                 />
-              </View>
+                  </View>
 
-              <View style={styles.fieldGroup}>
+                  <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Color</Text>
                 <View style={styles.colorRow}>
                   {colorPalette.map((color) => (
@@ -470,57 +592,58 @@ function AgendaTaskModal({
                     />
                   ))}
                 </View>
-              </View>
+                  </View>
 
-              {validation.error ? (
-                <Text style={styles.errorText}>{validation.error}</Text>
-              ) : null}
+                  {validation.error ? (
+                    <Text style={styles.errorText}>{validation.error}</Text>
+                  ) : null}
+                </>
+              )}
             </ScrollView>
 
             <View style={styles.footerButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.cancelButton]}
-                onPress={onClose}
-              >
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  styles.saveButton,
-                  !validation.isValid ? styles.disabledButton : null,
-                ]}
-                onPress={onSave}
-                disabled={!validation.isValid}
-              >
-                <Text style={styles.saveText}>Save</Text>
-              </TouchableOpacity>
-
-              {mode === "edit" ? (
+              {templatePickerVisible ? (
                 <TouchableOpacity
-                  style={[styles.actionButton, styles.deleteButton]}
-                  onPress={onDelete}
+                  style={[styles.actionButton, styles.cancelButton]}
+                  onPress={onCloseTemplatePicker}
                 >
-                  <Text style={styles.deleteText}>Delete</Text>
+                  <Text style={styles.cancelText}>Back</Text>
                 </TouchableOpacity>
-              ) : null}
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.cancelButton]}
+                    onPress={onClose}
+                  >
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      styles.saveButton,
+                      !validation.isValid ? styles.disabledButton : null,
+                    ]}
+                    onPress={onSave}
+                    disabled={!validation.isValid}
+                  >
+                    <Text style={styles.saveText}>Save</Text>
+                  </TouchableOpacity>
+
+                  {mode === "edit" ? (
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.deleteButton]}
+                      onPress={onDelete}
+                    >
+                      <Text style={styles.deleteText}>Delete</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </>
+              )}
             </View>
           </View>
         </View>
       </Modal>
-
-      <TimeInputModal
-        visible={Boolean(timeField)}
-        fieldLabel={timeField === "endTime" ? "End Time" : "Start Time"}
-        value={timeField ? form[timeField] : ""}
-        onClose={() => setTimeField("")}
-        onSave={(value) => {
-          if (!timeField) return;
-          setForm((prev) => ({ ...prev, [timeField]: value }));
-          setTimeField("");
-        }}
-      />
     </>
   );
 }
@@ -594,15 +717,24 @@ export default function AgendaScreen() {
   };
 
   const handleSaveTemplate = () => {
-    if (!tasksForSelectedDate.length) return;
-    setTemplates((prev) => [
-      ...prev,
-      createTemplateFromTasks(
+    if (!tasksForSelectedDate.length) {
+      Alert.alert(
+        "No Tasks To Save",
+        "Add at least one task on this day before saving a template.",
+      );
+      return;
+    }
+    let nextTemplateName = "";
+    setTemplates((prev) => {
+      const nextTemplate = createTemplateFromTasks(
         tasksForSelectedDate,
         selectedDateLabel,
         prev.length,
-      ),
-    ]);
+      );
+      nextTemplateName = nextTemplate.name;
+      return [...prev, nextTemplate];
+    });
+    Alert.alert("Template Saved", nextTemplateName);
   };
 
   const handleUseTemplate = (template) => {
@@ -762,14 +894,11 @@ export default function AgendaScreen() {
         onClose={closeModal}
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
-        onUseTemplate={() => setTemplatePickerVisible(true)}
-      />
-
-      <TemplatePickerModal
-        visible={templatePickerVisible}
         templates={templates}
-        onClose={() => setTemplatePickerVisible(false)}
-        onSelect={handleUseTemplate}
+        templatePickerVisible={templatePickerVisible}
+        onOpenTemplatePicker={() => setTemplatePickerVisible(true)}
+        onCloseTemplatePicker={() => setTemplatePickerVisible(false)}
+        onSelectTemplate={handleUseTemplate}
       />
     </View>
   );
@@ -1058,6 +1187,14 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     minHeight: 92,
+  },
+  inlineTimeEditor: {
+    marginTop: 10,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colours.borderMid,
+    backgroundColor: Colours.bgCardDark,
+    padding: 14,
   },
   timeInputField: {
     marginBottom: 8,
