@@ -153,8 +153,8 @@ export default function SettingsScreen() {
             onToggle={() => toggleSetting("notifications")}
           />
           <SettingRow
-            label="Deadlines Reminder"
-            sub="Reminders for your deadlines"
+            label="Calendar Reminders"
+            sub="Reminders for your important dates"
             value={settings.dailyReminder}
             onToggle={() => toggleSetting("dailyReminder")}
             isLast
