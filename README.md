@@ -1,6 +1,28 @@
 # HabitFlow
 
-A mobile habit tracking and schedule management app built with React Native + Expo.
+A mobile habit-tracking with real-time schedule management app and built-in user data storage.
+
+## 💻 Technologies
+
+- React Native
+- Expo framework
+- SQLite
+
+## 📱 Screens
+
+- Agenda: Manage daily schedules
+- Habits: Set habits and goals
+- Calendar: Set important dates and deadlines
+- Progress: Monitor results and motivate
+- Settings: Manage preferences and notifications
+
+## 🌿 Implementation overall
+
+- Create of the structure of the files
+- Each member work on a specific screen, working in it features and functionalities
+- Integrate app using a navigation system
+- Uniform the design of the screens using a global of root designs
+- Restructure the files dividing into screens, services, styles folders for better readability
 
 ## ⚙️ Installation
 
