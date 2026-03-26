@@ -195,9 +195,7 @@ export default function SettingsScreen() {
           >
             <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={styles.settingLabel}>Export Data</Text>
-              <Text style={styles.settingSub}>
-                Save a JSON copy to your device
-              </Text>
+              <Text style={styles.settingSub}>Save a copy to your device</Text>
             </View>
             <Text style={styles.actionIcon}>↓</Text>
           </TouchableOpacity>
