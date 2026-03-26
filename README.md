@@ -1,6 +1,6 @@
 # HabitFlow
 
-A mobile habit-tracking with real-time schedule management app and built-in user data storage.
+A mobile habit-tracking app with real-time schedule management and built-in user data storage.
 
 ## 💻 Technologies
 
@@ -18,10 +18,10 @@ A mobile habit-tracking with real-time schedule management app and built-in user
 
 ## 🌿 Implementation overall
 
-- Create of the structure of the files
-- Each member work on a specific screen, working in it features and functionalities
-- Integrate app using a navigation system
-- Uniform the design of the screens using a global of root designs
+- Created the file structure
+- Each member worked on a specific screen, working in it features and functionalities
+- Integrated app using a navigation system
+- Unified the design of the screens using a global styles file
 - Restructure the files dividing into screens, services, styles folders for better readability
 
 ## ⚙️ Installation
@@ -30,6 +30,7 @@ A mobile habit-tracking with real-time schedule management app and built-in user
 
 - Node.js v18 or higher
 - A package manager: npm or yarn
+- Expo Go app on your mobile device (for testing)
 
 **Clone the Repository**
 
