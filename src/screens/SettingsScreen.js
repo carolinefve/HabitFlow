@@ -10,7 +10,7 @@ import {
 import { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { FrequencyOptions, DefaultSettings } from "../services/progressService";
+import { FrequencyOptions, DefaultSettings } from "../services/settingsService";
 
 import styles from "../styles/settingsStyles";
 
