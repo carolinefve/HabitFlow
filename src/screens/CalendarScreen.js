@@ -17,7 +17,7 @@ import {
 } from "../services/calendarService";
 
 import styles from "../styles/calendarStyles";
-import { Colours } from "../styles/global";
+import { Colours } from "../styles/globalStyles";
 
 export default function Calendar() {
   const now = new Date();

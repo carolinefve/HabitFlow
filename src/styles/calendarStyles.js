@@ -5,7 +5,7 @@ import {
   Spacing,
   HeaderTitle,
   SubHeading,
-} from "../styles/global";
+} from "../styles/globalStyles";
 
 export default StyleSheet.create({
   screen: {

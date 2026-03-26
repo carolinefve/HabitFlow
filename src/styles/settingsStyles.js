@@ -1,5 +1,10 @@
 import { StyleSheet } from "react-native";
-import { Colours, Radius, HeaderTitle, SubHeading } from "../styles/global";
+import {
+  Colours,
+  Radius,
+  HeaderTitle,
+  SubHeading,
+} from "../styles/globalStyles";
 
 export default StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colours.bgPrimary },

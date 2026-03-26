@@ -33,7 +33,7 @@ import {
 } from "../services/agendaService";
 
 import styles from "../styles/agendaStyles";
-import { Colours, TaskColourPalette } from "../styles/global";
+import { Colours, TaskColourPalette } from "../styles/globalStyles";
 
 function InlineTimeEditor({ visible, fieldLabel, value, onClose, onSave }) {
   const [hourValue, setHourValue] = useState("");

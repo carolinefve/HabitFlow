@@ -1,4 +1,4 @@
-import { Colours } from "../styles/global";
+import { Colours } from "../styles/globalStyles";
 
 export const SLOT_HEIGHT = 88;
 export const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;

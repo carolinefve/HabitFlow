@@ -26,7 +26,7 @@ import {
 } from "../services/habitsService";
 
 import styles from "../styles/habitsStyles";
-import { Colours } from "../styles/global";
+import { Colours } from "../styles/globalStyles";
 
 export default function Habits() {
   // lis../services/habitsService

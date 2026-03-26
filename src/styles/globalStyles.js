@@ -1,5 +1,3 @@
-// Root designs
-
 export const Colours = {
   // Backgrounds
   bgPrimary: "#000000",

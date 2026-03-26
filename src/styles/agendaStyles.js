@@ -5,7 +5,7 @@ import {
   Spacing,
   HeaderTitle,
   SubHeading,
-} from "../styles/global";
+} from "../styles/globalStyles";
 import { SLOT_HEIGHT, timelineHours } from "../services/agendaService";
 
 export default StyleSheet.create({
