@@ -157,12 +157,6 @@ export default function SettingsScreen() {
             sub="Reminders for your deadlines"
             value={settings.dailyReminder}
             onToggle={() => toggleSetting("dailyReminder")}
-          />
-          <SettingRow
-            label="Weekly Report"
-            sub="Summary every Sunday"
-            value={settings.weeklyReport}
-            onToggle={() => toggleSetting("weeklyReport")}
             isLast
           />
         </View>
