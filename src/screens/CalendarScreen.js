@@ -9,7 +9,13 @@ import {
   TextInput,
 } from "react-native";
 import DatePicker, { getFormatedDate } from "react-native-modern-datepicker";
-import { Colours, Radius, Spacing, HeaderTitle } from "../styles/global";
+import {
+  Colours,
+  Radius,
+  Spacing,
+  HeaderTitle,
+  SubHeading,
+} from "../styles/global";
 
 export default function Calendar() {
   const now = new Date();
@@ -536,10 +542,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   listHeading: {
-    color: Colours.textPrimary,
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
+    ...SubHeading.heading,
     marginBottom: 4,
   },
   deadlineCard: {

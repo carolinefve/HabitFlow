@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Colours, Radius, HeaderTitle } from "../styles/global";
+import { Colours, Radius, HeaderTitle, SubHeading } from "../styles/global";
 
 export default StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colours.bgPrimary },
@@ -58,10 +58,7 @@ export default StyleSheet.create({
   motivationSub: { fontSize: 16, color: Colours.textMuted, fontWeight: "500" },
 
   sectionHeader: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: Colours.textPrimary,
-    textTransform: "uppercase",
+    ...SubHeading.heading,
     marginBottom: 10,
     marginTop: 4,
   },

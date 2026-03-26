@@ -35,6 +35,7 @@ import {
   Spacing,
   TaskColourPalette,
   HeaderTitle,
+  SubHeading,
 } from "../styles/global";
 
 const SLOT_HEIGHT = 88;
@@ -996,10 +997,7 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: Colours.textPrimary,
-    textTransform: "uppercase",
+    ...SubHeading.heading,
     marginBottom: 10,
     marginTop: 4,
   },
@@ -1185,9 +1183,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fieldLabel: {
-    color: Colours.textPrimary,
-    fontSize: 14,
-    fontWeight: "800",
+    ...SubHeading.heading,
   },
   input: {
     borderRadius: Radius.md,

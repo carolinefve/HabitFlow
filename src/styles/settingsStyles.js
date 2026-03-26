@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Colours, Radius, HeaderTitle } from "../styles/global";
+import { Colours, Radius, HeaderTitle, SubHeading } from "../styles/global";
 
 export default StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colours.bgPrimary },
@@ -38,9 +38,7 @@ export default StyleSheet.create({
   },
 
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: Colours.textPrimary,
+    ...SubHeading.heading,
     marginBottom: 8,
     marginTop: 10,
   },

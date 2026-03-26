@@ -13,7 +13,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
-import { Colours, Radius, HeaderTitle, Spacing } from "../styles/global";
+import {
+  Colours,
+  Radius,
+  HeaderTitle,
+  Spacing,
+  SubHeading,
+} from "../styles/global";
 
 const GENERAL_CATEGORY = "General";
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -632,7 +638,7 @@ export default function Habits() {
             {durationText ? ` • ${durationText}` : ""}
           </Text>
           <Text style={styles.cardFrequency}>
-            🔄 {getFrequencyDisplay(item.frequency)}
+            {getFrequencyDisplay(item.frequency)}
           </Text>
         </View>
         <View style={styles.cardActions}>
@@ -981,11 +987,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   filterRowLabel: {
-    color: Colours.textPrimary,
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    width: 52,
+    ...SubHeading.heading,
+    width: 57,
   },
   filterChips: {
     flexDirection: "row",
@@ -1168,10 +1171,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   formFieldLabel: {
-    color: Colours.textSecondary,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.2,
+    ...SubHeading.heading,
   },
   formFieldLabelHint: {
     color: Colours.textDisabled,

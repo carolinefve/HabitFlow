@@ -58,6 +58,15 @@ export const HeaderTitle = {
   title: { fontSize: 35, fontWeight: "800", color: "#ffffff" },
 };
 
+export const SubHeading = {
+  heading: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: Colours.textPrimary,
+    textTransform: "uppercase",
+  },
+};
+
 export const Spacing = {
   screenPaddingTop: 20,
   screenPaddingHorizontal: 20,
