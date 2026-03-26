@@ -531,7 +531,7 @@ export default function Habits() {
             {durationText ? ` • ${durationText}` : ""}
           </Text>
           <Text style={styles.cardFrequency}>
-            {getFrequencyDisplay(item.frequency)}
+            🔄 {getFrequencyDisplay(item.frequency)}
           </Text>
         </View>
         <View style={styles.cardActions}>
