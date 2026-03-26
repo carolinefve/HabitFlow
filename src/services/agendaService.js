@@ -1,7 +1,201 @@
-const SLOT_HEIGHT = 88;
-const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;
-const BASE_DAY_DATE = new Date(2026, 1, 23);
-const FIRST_VISIBLE_MINUTE = 5 * 60;
+import { Colours } from "../styles/global";
+
+export const SLOT_HEIGHT = 88;
+export const PIXELS_PER_MINUTE = SLOT_HEIGHT / 60;
+export const BASE_DAY_DATE = new Date(2026, 1, 25);
+export const FIRST_VISIBLE_MINUTE = 5 * 60;
+
+export const timelineHours = [
+  "7 AM",
+  "8 AM",
+  "9 AM",
+  "10 AM",
+  "11 AM",
+  "12 PM",
+  "1 PM",
+  "2 PM",
+  "3 PM",
+  "4 PM",
+  "5 PM",
+  "6 PM",
+  "7 PM",
+  "8 PM",
+  "9 PM",
+  "10 PM",
+  "11 PM",
+];
+
+export const initialTasks = [
+  {
+    id: "ad-1",
+    title: "Habit - Reading for 10 min",
+    dateLabel: "2026-02-25",
+    allDay: true,
+    notes: "",
+    color: Colours.blue,
+    startTime: "",
+    endTime: "",
+  },
+  {
+    id: "ad-2",
+    title: "Habit - Reading for 10 min",
+    dateLabel: "2026-02-26",
+    allDay: true,
+    notes: "",
+    color: Colours.blue,
+    startTime: "",
+    endTime: "",
+  },
+  {
+    id: "ad-3",
+    title: "Habit - Reading for 20 min",
+    dateLabel: "2026-02-27",
+    allDay: true,
+    notes: "",
+    color: Colours.blue,
+    startTime: "",
+    endTime: "",
+  },
+
+  {
+    id: "t-1",
+    title: "Breakfast with friends",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "8:00 AM",
+    endTime: "9:00 AM",
+    notes: "Print Cafe",
+    color: Colours.purple,
+  },
+  {
+    id: "t-2",
+    title: "Lecture Algorithms",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "10:00 AM",
+    endTime: "12:00 AM",
+    notes: "Lecture Hall A",
+    color: Colours.green,
+  },
+  {
+    id: "t-3",
+    title: "Habit - Gym",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "1:00 PM",
+    endTime: "2:00 PM",
+    notes: "",
+    color: Colours.blue,
+  },
+  {
+    id: "t-4",
+    title: "Deadline - Coursework Haskell",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "4:00 PM",
+    endTime: "",
+    notes: "",
+    color: Colours.red,
+  },
+  {
+    id: "t-5",
+    title: "Lecture Java",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "9:00 AM",
+    endTime: "10:00 AM",
+    notes: "Lecture Hall A",
+    color: Colours.green,
+  },
+  {
+    id: "t-6",
+    title: "Habit - Gym",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "1:00 PM",
+    endTime: "2:00 PM",
+    notes: "",
+    color: Colours.blue,
+  },
+  {
+    id: "t-7",
+    title: "Deadline - Coursework Maths",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "11:00 AM",
+    endTime: "",
+    notes: "",
+    color: Colours.red,
+  },
+  {
+    id: "t-9",
+    title: "Doctor's Appointment",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "2:30 PM",
+    endTime: "3:30 PM",
+    notes: "",
+    color: Colours.brown,
+  },
+  {
+    id: "t-10",
+    title: "Habit - Wake up at 7am",
+    dateLabel: "2026-02-25",
+    allDay: false,
+    startTime: "7:00 AM",
+    endTime: "",
+    notes: "",
+    color: Colours.blue,
+  },
+  {
+    id: "t-11",
+    title: "Habit - Wake up at 7am",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "7:00 AM",
+    endTime: "",
+    notes: "",
+    color: Colours.blue,
+  },
+  {
+    id: "t-12",
+    title: "Piano Lessons",
+    dateLabel: "2026-02-26",
+    allDay: false,
+    startTime: "2:00 PM",
+    endTime: "",
+    notes: "",
+    color: Colours.orange,
+  },
+  {
+    id: "t-13",
+    title: "Walk the dog",
+    dateLabel: "2026-02-25",
+    allDay: true,
+    startTime: "",
+    endTime: "",
+    notes: "",
+    color: Colours.orange,
+  },
+  {
+    id: "t-13",
+    title: "Walk the dog",
+    dateLabel: "2026-02-26",
+    allDay: true,
+    startTime: "",
+    endTime: "",
+    notes: "",
+    color: Colours.orange,
+  },
+];
+
+export function formatDate(date) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export function formatDateLabel(date) {
   const year = date.getFullYear();
